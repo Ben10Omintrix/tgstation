@@ -351,13 +351,15 @@
 			done_healing = TRUE
 
 	patient.visible_message(span_notice("[src] tends the wounds of [patient]!"), "[span_infoplain(span_green("[src] tends your wounds!"))]")
-	update_bot_mode(new_mode = BOT_IDLE)
+
 	if(done_healing)
 		visible_message(span_infoplain("[src] places its tools back into itself."))
-		to_chat(src, "[patient] is now healthy!")
-	//If player-controlled, call them to heal again here for continous player healing
-	else if(!isnull(client))
-		melee_attack(patient)
+		update_bot_mode(new_mode = BOT_IDLE)
+		patient.balloon_alert(src, "all healed up!")
+		return
+
+	if(CanReach(patient))
+		medicate_patient(patient)
 
 
 /mob/living/basic/bot/medbot/autopatrol
