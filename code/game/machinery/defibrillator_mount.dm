@@ -19,14 +19,12 @@
 /// the type of wallframe it 'disassembles' into
 	var/wallframe_type = /obj/item/wallframe/defib_mount
 
-MAPPING_DIRECTIONAL_HELPERS(/obj/machinery/defibrillator_mount, 28)
-
 /obj/machinery/defibrillator_mount/loaded/Initialize(mapload) //loaded subtype for mapping use
 	. = ..()
 	defib = new/obj/item/defibrillator/loaded(src)
 	find_and_hang_on_wall()
 
-MAPPING_DIRECTIONAL_HELPERS(/obj/machinery/defibrillator_mount, 28)
+WALL_MOUNT_DIRECTIONAL_HELPERS(/obj/machinery/defibrillator_mount)
 
 /obj/machinery/defibrillator_mount/Destroy()
 	QDEL_NULL(defib)

@@ -32,6 +32,16 @@
 	fire = 100
 	acid = 70
 
+/obj/machinery/door/poddoor/Initialize(mapload)
+	. = ..()
+	if(mapload)
+		return INITIALIZE_HINT_LATELOAD
+
+/obj/machinery/door/poddoor/post_machine_initialize(mapload)
+	. = ..()
+	if(mapload)
+		auto_align()
+
 /obj/machinery/door/poddoor/get_save_vars()
 	return ..() + NAMEOF(src, id)
 
@@ -213,33 +223,43 @@
 
 /obj/machinery/door/poddoor/update_icon_state()
 	. = ..()
-	switch(animation)
-		if(DOOR_OPENING_ANIMATION)
-			icon_state = "opening"
-		if(DOOR_CLOSING_ANIMATION)
-			icon_state = "closing"
-		if(DOOR_DENY_ANIMATION)
-			icon_state = "deny"
-		else
-			icon_state = density ? "closed" : "open"
+	if(animation)
+		icon_state = animation
+	else
+		icon_state = density ? "closed" : "open_top"
+
+/obj/machinery/door/poddoor/update_overlays()
+	. = ..()
+	var/list/mutable_appearance/lower = get_lower_overlays()
+	if(length(lower))
+		. += lower
+
+/obj/machinery/door/poddoor/proc/get_lower_overlays()
+	if(density)
+		return
+	var/list/hand_back = list()
+	// If we're open we layer the bit below us "above" any mobs so they can walk through
+	hand_back += mutable_appearance(icon, "open_bottom", ABOVE_MOB_LAYER, appearance_flags = KEEP_APART)
+	hand_back += emissive_blocker(icon, "open_bottom", src, ABOVE_MOB_LAYER)
+	return hand_back
 
 /obj/machinery/door/poddoor/animation_length(animation)
 	switch(animation)
 		if(DOOR_OPENING_ANIMATION)
-			return 1.1 SECONDS
+			return 0.9 SECONDS
 		if(DOOR_CLOSING_ANIMATION)
-			return 1.1 SECONDS
+			return 0.8 SECONDS
 
 /obj/machinery/door/poddoor/animation_segment_delay(animation)
 	switch(animation)
 		if(DOOR_OPENING_PASSABLE)
-			return 0.5 SECONDS
+			return 0.6 SECONDS
 		if(DOOR_OPENING_FINISHED)
-			return 1.1 SECONDS
+			return 0.9 SECONDS
 		if(DOOR_CLOSING_UNPASSABLE)
-			return 0.2 SECONDS
+			return 0.3 SECONDS
 		if(DOOR_CLOSING_FINISHED)
-			return 1.1 SECONDS
+			return 0.8 SECONDS
 
 /obj/machinery/door/poddoor/animation_effects(animation)
 	switch(animation)
@@ -268,7 +288,7 @@
 		return ..()
 
 /obj/machinery/door/poddoor/preopen
-	icon_state = "open"
+	icon_state = "open_map"
 	density = FALSE
 	opacity = FALSE
 

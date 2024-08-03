@@ -6,9 +6,16 @@
 	lefthand_file = 'icons/mob/inhands/equipment/medical_lefthand.dmi'
 	righthand_file = 'icons/mob/inhands/equipment/medical_righthand.dmi'
 	w_class = WEIGHT_CLASS_SMALL
+	/// What do we create?
 	var/result_path
-	var/wall_external = FALSE // For frames that are external to the wall they are placed on, like light fixtures and cameras.
-	var/pixel_shift //The amount of pixels
+	/// For frames that are external to the wall they are placed on, like light fixtures and cameras.
+	var/wall_external = FALSE
+	/// The amount of pixels
+	var/pixel_shift
+	/// Do we used inverse directionals?
+	var/inverse_dir = FALSE
+	/// Can we only hang this on walls North of us? Preferably don't enable unless you absolutely have to
+	var/north_only = FALSE
 
 /obj/item/wallframe/proc/try_build(turf/on_wall, mob/user)
 	if(get_dist(on_wall,user) > 1)
@@ -18,6 +25,11 @@
 	if(!(floor_to_wall in GLOB.cardinals))
 		balloon_alert(user, "stand in line with wall!")
 		return
+
+	if (north_only && floor_to_wall != NORTH)
+		balloon_alert(user, "cannot place here!")
+		return
+
 	var/turf/T = get_turf(user)
 	var/area/A = get_area(T)
 	if(!isfloorturf(T))
@@ -40,8 +52,20 @@
 			span_hear("You hear clicking."))
 		var/floor_to_wall = get_dir(user, on_wall)
 
-		var/obj/hanging_object = new result_path(get_turf(user), floor_to_wall, TRUE)
-		hanging_object.setDir(floor_to_wall)
+		var/set_to = floor_to_wall
+		if(inverse_dir == TRUE) // I'm sorry about this switch, O.turn wouldn't work for whatever reason.
+			switch(floor_to_wall)
+				if(NORTH)
+					set_to = SOUTH
+				if(SOUTH)
+					set_to = NORTH
+				if(EAST)
+					set_to = WEST
+				if(WEST)
+					set_to = EAST
+		var/obj/hanging_object = new result_path(get_turf(user), set_to, TRUE)
+		hanging_object.setDir(set_to)
+
 		if(pixel_shift)
 			switch(floor_to_wall)
 				if(NORTH)

@@ -10,7 +10,7 @@
 	/// What's in the urinal
 	var/obj/item/hidden_item
 
-MAPPING_DIRECTIONAL_HELPERS(/obj/structure/urinal, 32)
+WALL_MOUNT_DIRECTIONAL_HELPERS(/obj/structure/urinal)
 
 /obj/structure/urinal/Initialize(mapload)
 	. = ..()

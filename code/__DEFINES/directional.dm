@@ -28,14 +28,98 @@
 /// Inverse direction, taking into account UP|DOWN if necessary.
 #define REVERSE_DIR(dir) ( ((dir & 85) << 1) | ((dir & 170) >> 1) )
 
-/// Create directional subtypes for a path to simplify mapping.
-#define MAPPING_DIRECTIONAL_HELPERS(path, offset) ##path/directional/north {\
+// Wallening todo: temporary helper, until we finish fleshing things out and can convert the main one
+// Why are we not just changing the sprites agian?
+#define INVERT_MAPPING_DIRECTIONAL_HELPERS(path, offset) \
+##path/directional/north {\
+	dir = SOUTH; \
+	MAP_SWITCH(pixel_z, pixel_y) = offset; \
+} \
+##path/directional/south {\
 	dir = NORTH; \
-	pixel_y = offset; \
+	MAP_SWITCH(pixel_z, pixel_y) = -offset; \
+} \
+##path/directional/east {\
+	dir = WEST; \
+	pixel_x = offset; \
+} \
+##path/directional/west {\
+	dir = EAST; \
+	pixel_x = -offset; \
+}
+
+/// Directional helpers for things that use the wall_mount element
+#define WALL_MOUNT_DIRECTIONAL_HELPERS(path) \
+##path/directional/north {\
+	dir = SOUTH; \
+	MAP_SWITCH(pixel_z, pixel_y) = 35; \
+} \
+##path/directional/south {\
+	dir = NORTH; \
+	MAP_SWITCH(pixel_z, pixel_y) = -8; \
+} \
+##path/directional/east {\
+	dir = WEST; \
+	pixel_x = 11; \
+	MAP_SWITCH(pixel_z, pixel_y) = 16; \
+} \
+##path/directional/west {\
+	dir = EAST; \
+	pixel_x = -11; \
+	MAP_SWITCH(pixel_z, pixel_y) = 16; \
+}
+
+/// Directional helpers for cameras (cameras are really annoying)
+/// They have diagonal dirs and also offset south differently
+#define CAMERA_DIRECTIONAL_HELPERS(path) \
+##path/directional/north {\
+	dir = SOUTH; \
+	MAP_SWITCH(pixel_z, pixel_y) = 35; \
+} \
+##path/directional/south {\
+	dir = NORTH; \
+	MAP_SWITCH(pixel_z, pixel_y) = 16; \
+} \
+##path/directional/east {\
+	dir = WEST; \
+	pixel_x = 11; \
+	MAP_SWITCH(pixel_z, pixel_y) = 16; \
+} \
+##path/directional/west {\
+	dir = EAST; \
+	pixel_x = -11; \
+	MAP_SWITCH(pixel_z, pixel_y) = 16; \
+} \
+##path/directional/north_east {\
+	dir = NORTHWEST; \
+	MAP_SWITCH(pixel_z, pixel_y) = 35; \
+} \
+##path/directional/north_west {\
+	dir = NORTHEAST; \
+	MAP_SWITCH(pixel_z, pixel_y) = 16; \
+} \
+##path/directional/south_east {\
+	dir = SOUTHWEST; \
+	pixel_x = 11; \
+	MAP_SWITCH(pixel_z, pixel_y) = 16; \
+} \
+##path/directional/south_west {\
+	dir = SOUTHEAST; \
+	pixel_x = -11; \
+	MAP_SWITCH(pixel_z, pixel_y) = 16; \
+}
+
+
+/// Create directional subtypes for a path to simplify mapping.
+
+#define MAPPING_DIRECTIONAL_HELPERS(path, offset) \
+##path/directional/north {\
+	dir = NORTH; \
+	MAP_SWITCH(pixel_z, pixel_y) = offset; \
 } \
 ##path/directional/south {\
 	dir = SOUTH; \
-	pixel_y = -offset; \
+	MAP_SWITCH(pixel_z, pixel_y) = -offset; \
 } \
 ##path/directional/east {\
 	dir = EAST; \
@@ -45,3 +129,25 @@
 	dir = WEST; \
 	pixel_x = -offset; \
 }
+
+#define MAPPING_DIRECTIONAL_HELPERS_EMPTY(path) \
+##path/directional/north {\
+	dir = NORTH; \
+} \
+##path/directional/south {\
+	dir = SOUTH; \
+} \
+##path/directional/east {\
+	dir = EAST; \
+} \
+##path/directional/west {\
+	dir = WEST; \
+}
+
+#define BUTTON_DIRECTIONAL_HELPERS(path) \
+##path/table { \
+	on_table = TRUE; \
+	icon_state = parent_type::icon_state + "_table"; \
+	base_icon_state = parent_type::icon_state + "_table"; \
+} \
+WALL_MOUNT_DIRECTIONAL_HELPERS(path)

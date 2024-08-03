@@ -2,8 +2,10 @@
 /obj/item/wallframe/apc
 	name = "\improper APC frame"
 	desc = "Used for repairing or building APCs."
-	icon_state = "apc"
+	icon = 'icons/obj/APC.dmi'
+	icon_state = "frame"
 	result_path = /obj/machinery/power/apc/auto_name
+	inverse_dir = TRUE
 
 /obj/item/wallframe/apc/try_build(turf/on_wall, user)
 	if(!..())

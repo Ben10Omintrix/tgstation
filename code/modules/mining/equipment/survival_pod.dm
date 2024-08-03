@@ -137,19 +137,16 @@
 //Window
 /obj/structure/window/reinforced/shuttle/survival_pod
 	name = "pod window"
-	icon = 'icons/obj/smooth_structures/pod_window.dmi'
-	icon_state = "pod_window-0"
-	base_icon_state = "pod_window"
+	icon = 'icons/obj/smooth_structures/windows/pod_window.dmi'
 	smoothing_flags = SMOOTH_BITMASK
 	smoothing_groups = SMOOTH_GROUP_SHUTTLE_PARTS + SMOOTH_GROUP_SURVIVAL_TITANIUM_POD
 	canSmoothWith = SMOOTH_GROUP_SURVIVAL_TITANIUM_POD
 
 /obj/structure/window/reinforced/survival_pod
 	name = "pod window"
-	icon = 'icons/obj/mining_zones/survival_pod.dmi'
-	icon_state = "pwindow"
+	icon = 'icons/obj/smooth_structures/windows/pod_thindow.dmi'
 
-MAPPING_DIRECTIONAL_HELPERS(/obj/structure/window/reinforced/survival_pod/spawner, 0)
+MAPPING_DIRECTIONAL_HELPERS_EMPTY(/obj/structure/window/reinforced/survival_pod/spawner)
 
 //Door
 /obj/machinery/door/airlock/survival_pod
@@ -165,17 +162,15 @@ MAPPING_DIRECTIONAL_HELPERS(/obj/structure/window/reinforced/survival_pod/spawne
 
 /obj/structure/door_assembly/door_assembly_pod
 	name = "pod airlock assembly"
-	icon = 'icons/obj/doors/airlocks/survival/survival.dmi'
-	base_name = "pod airlock"
-	overlays_file = 'icons/obj/doors/airlocks/survival/survival_overlays.dmi'
+	icon =  /obj/machinery/door/airlock/survival_pod::icon
 	airlock_type = /obj/machinery/door/airlock/survival_pod
 	glass_type = /obj/machinery/door/airlock/survival_pod/glass
 
 //Windoor
 /obj/machinery/door/window/survival_pod
-	icon = 'icons/obj/mining_zones/survival_pod.dmi'
-	icon_state = "windoor"
-	base_state = "windoor"
+	icon = 'icons/obj/doors/windoor.dmi'
+	icon_state = "survival"
+	base_state = "survival"
 
 MAPPING_DIRECTIONAL_HELPERS(/obj/machinery/door/window/survival_pod/left, 0)
 

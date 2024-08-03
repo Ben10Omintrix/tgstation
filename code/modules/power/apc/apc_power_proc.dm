@@ -12,7 +12,7 @@
 	// wires will attach to this
 	terminal = new/obj/machinery/power/terminal(loc)
 	terminal.cable_layer = terminal_cable_layer
-	terminal.setDir(dir)
+	terminal.setDir(turn(dir, 180))
 	terminal.master = src
 
 /obj/machinery/power/apc/proc/toggle_nightshift_lights(mob/user)

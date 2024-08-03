@@ -7,6 +7,7 @@
  * Has a lot of the creature game world logic, such as health etc
  */
 /mob
+	SET_BASE_VISUAL_PIXEL(0, WALLENING_OFFSET)
 	density = TRUE
 	layer = MOB_LAYER
 	animate_movement = SLIDE_STEPS
@@ -21,14 +22,13 @@
 	see_in_dark = 1e6
 	// A list of factions that this mob is currently in, for hostile mob targeting, amongst other things
 	faction = list(FACTION_NEUTRAL)
+	var/shift_to_open_context_menu = TRUE
 	/// The current client inhabiting this mob. Managed by login/logout
 	/// This exists so we can do cleanup in logout for occasions where a client was transfere rather then destroyed
 	/// We need to do this because the mob on logout never actually has a reference to client
 	/// We also need to clear this var/do other cleanup in client/Destroy, since that happens before logout
 	/// HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
 	var/client/canon_client
-
-	var/shift_to_open_context_menu = TRUE
 
 	/// Percentage of how much rgb to max the lighting plane at
 	/// This lets us brighten it without washing out color
@@ -181,6 +181,9 @@
 
 	///Override for sound_environments. If this is set the user will always hear a specific type of reverb (Instead of the area defined reverb)
 	var/sound_environment_override = SOUND_ENVIRONMENT_NONE
+
+	///Mask for when a client posseses a mob to mask out a section of the wall frill
+	var/image/frill_mask
 
 	/// A mock client, provided by tests and friends
 	var/datum/client_interface/mock_client

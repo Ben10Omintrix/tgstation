@@ -1,9 +1,7 @@
 /turf/closed/wall/mineral
 	name = "mineral wall"
 	desc = "This shouldn't exist"
-	icon_state = ""
 	smoothing_flags = SMOOTH_BITMASK
-	canSmoothWith = null
 	rcd_memory = null
 	material_flags = MATERIAL_EFFECTS
 	rust_resistance = RUST_RESISTANCE_BASIC
@@ -12,8 +10,6 @@
 	name = "gold wall"
 	desc = "A wall with gold plating. Swag!"
 	icon = 'icons/turf/walls/gold_wall.dmi'
-	icon_state = "gold_wall-0"
-	base_icon_state = "gold_wall"
 	sheet_type = /obj/item/stack/sheet/mineral/gold
 	hardness = 65 //gold is soft
 	explosive_resistance = 0 //gold is a soft metal you dingus.
@@ -26,8 +22,6 @@
 	name = "silver wall"
 	desc = "A wall with silver plating. Shiny!"
 	icon = 'icons/turf/walls/silver_wall.dmi'
-	icon_state = "silver_wall-0"
-	base_icon_state = "silver_wall"
 	sheet_type = /obj/item/stack/sheet/mineral/silver
 	hardness = 65 //silver is also soft according to moh's scale
 	smoothing_flags = SMOOTH_BITMASK
@@ -39,8 +33,6 @@
 	name = "diamond wall"
 	desc = "A wall with diamond plating. You monster."
 	icon = 'icons/turf/walls/diamond_wall.dmi'
-	icon_state = "diamond_wall-0"
-	base_icon_state = "diamond_wall"
 	sheet_type = /obj/item/stack/sheet/mineral/diamond
 	hardness = 5 //diamond is very hard
 	slicing_duration = 200   //diamond wall takes twice as much time to slice
@@ -58,8 +50,6 @@
 	name = "bananium wall"
 	desc = "A wall with bananium plating. Honk!"
 	icon = 'icons/turf/walls/bananium_wall.dmi'
-	icon_state = "bananium_wall-0"
-	base_icon_state = "bananium_wall"
 	sheet_type = /obj/item/stack/sheet/mineral/bananium
 	hardness = 70 //it's banana
 	smoothing_flags = SMOOTH_BITMASK
@@ -72,8 +62,6 @@
 	name = "sandstone wall"
 	desc = "A wall with sandstone plating. Rough."
 	icon = 'icons/turf/walls/sandstone_wall.dmi'
-	icon_state = "sandstone_wall-0"
-	base_icon_state = "sandstone_wall"
 	sheet_type = /obj/item/stack/sheet/mineral/sandstone
 	hardness = 50 //moh says this is apparently 6-7 on it's scale
 	explosive_resistance = 0
@@ -88,8 +76,6 @@
 	name = "uranium wall"
 	desc = "A wall with uranium plating. This is probably a bad idea."
 	icon = 'icons/turf/walls/uranium_wall.dmi'
-	icon_state = "uranium_wall-0"
-	base_icon_state = "uranium_wall"
 	sheet_type = /obj/item/stack/sheet/mineral/uranium
 	hardness = 40 //uranium is a 6 on moh's scale
 	smoothing_flags = SMOOTH_BITMASK
@@ -145,8 +131,6 @@
 	name = "plasma wall"
 	desc = "A wall with plasma plating. This is definitely a bad idea."
 	icon = 'icons/turf/walls/plasma_wall.dmi'
-	icon_state = "plasma_wall-0"
-	base_icon_state = "plasma_wall"
 	sheet_type = /obj/item/stack/sheet/mineral/plasma
 	hardness = 70 // I'll tentatively compare it to Bismuth
 	thermal_conductivity = 0.04
@@ -160,8 +144,6 @@
 	name = "wooden wall"
 	desc = "A wall with wooden plating. Stiff."
 	icon = 'icons/turf/walls/wood_wall.dmi'
-	icon_state = "wood_wall-0"
-	base_icon_state = "wood_wall"
 	sheet_type = /obj/item/stack/sheet/mineral/wood
 	hardness = 80
 	turf_flags = IS_SOLID
@@ -194,8 +176,6 @@
 	name = "bamboo wall"
 	desc = "A wall with a bamboo finish."
 	icon = 'icons/turf/walls/bamboo_wall.dmi'
-	icon_state = "bamboo_wall-0"
-	base_icon_state = "bamboo_wall"
 	smoothing_flags = SMOOTH_BITMASK
 	smoothing_groups = SMOOTH_GROUP_WALLS + SMOOTH_GROUP_BAMBOO_WALLS + SMOOTH_GROUP_CLOSED_TURFS
 	canSmoothWith = SMOOTH_GROUP_BAMBOO_WALLS
@@ -207,8 +187,6 @@
 	name = "rough iron wall"
 	desc = "A wall with rough iron plating."
 	icon = 'icons/turf/walls/iron_wall.dmi'
-	icon_state = "iron_wall-0"
-	base_icon_state = "iron_wall"
 	sheet_type = /obj/item/stack/rods
 	hardness = 60
 	sheet_amount = 5
@@ -222,14 +200,13 @@
 	name = "packed snow wall"
 	desc = "A wall made of densely packed snow blocks."
 	icon = 'icons/turf/walls/snow_wall.dmi'
-	icon_state = "snow_wall-0"
-	base_icon_state = "snow_wall"
 	smoothing_flags = SMOOTH_BITMASK
 	hardness = 80
 	explosive_resistance = 0
 	slicing_duration = 30
 	sheet_type = /obj/item/stack/sheet/mineral/snow
-	canSmoothWith = null
+	smoothing_groups = SMOOTH_GROUP_SNOW_WALLS + SMOOTH_GROUP_WALLS + SMOOTH_GROUP_CLOSED_TURFS
+	canSmoothWith = SMOOTH_GROUP_SNOW_WALLS
 	girder_type = null
 	bullet_sizzle = TRUE
 	bullet_bounce_sound = null
@@ -243,8 +220,6 @@
 	name = "alien wall"
 	desc = "A wall with alien alloy plating."
 	icon = 'icons/turf/walls/abductor_wall.dmi'
-	icon_state = "abductor_wall-0"
-	base_icon_state = "abductor_wall"
 	sheet_type = /obj/item/stack/sheet/mineral/abductor
 	hardness = 10
 	slicing_duration = 200   //alien wall takes twice as much time to slice
@@ -255,22 +230,32 @@
 	custom_materials = list(/datum/material/alloy/alien = SHEET_MATERIAL_AMOUNT*2)
 	rust_resistance = RUST_RESISTANCE_ORGANIC
 
+/turf/closed/wall/mineral/meat
+	name = "meat wall"
+	desc = "A wall of somone's compacted meat."
+	icon = 'icons/turf/walls/meat_wall.dmi'
+	sheet_type = /obj/item/stack/sheet/meat
+	hardness = 50
+	explosive_resistance = 0
+	smoothing_flags = SMOOTH_BITMASK
+	smoothing_groups = SMOOTH_GROUP_MEAT_WALLS + SMOOTH_GROUP_CLOSED_TURFS + SMOOTH_GROUP_WALLS
+	canSmoothWith = SMOOTH_GROUP_MEAT_WALLS
+	custom_materials = list(/datum/material/meat = 4000)
+
 /////////////////////Titanium walls/////////////////////
 
 /turf/closed/wall/mineral/titanium //has to use this path due to how building walls works
 	name = "wall"
 	desc = "A light-weight titanium wall used in shuttles."
 	icon = 'icons/turf/walls/shuttle_wall.dmi'
-	icon_state = "shuttle_wall-0"
-	base_icon_state = "shuttle_wall"
 	explosive_resistance = 3
 	flags_1 = CAN_BE_DIRTY_1
 	flags_ricochet = RICOCHET_SHINY | RICOCHET_HARD
 	sheet_type = /obj/item/stack/sheet/mineral/titanium
 	hardness = 40 //6 on moh's scale
-	smoothing_flags = SMOOTH_BITMASK | SMOOTH_DIAGONAL_CORNERS
+	smoothing_flags = SMOOTH_BITMASK
 	smoothing_groups = SMOOTH_GROUP_TITANIUM_WALLS + SMOOTH_GROUP_WALLS + SMOOTH_GROUP_CLOSED_TURFS
-	canSmoothWith = SMOOTH_GROUP_SHUTTLE_PARTS + SMOOTH_GROUP_AIRLOCK + SMOOTH_GROUP_TITANIUM_WALLS
+	canSmoothWith = SMOOTH_GROUP_SHUTTLE_PARTS + SMOOTH_GROUP_TITANIUM_WALLS
 	custom_materials = list(/datum/material/titanium = SHEET_MATERIAL_AMOUNT*2)
 	rust_resistance = RUST_RESISTANCE_TITANIUM
 
@@ -281,13 +266,9 @@
 	return ..()
 
 /turf/closed/wall/mineral/titanium/nodiagonal
-	icon = 'icons/turf/walls/shuttle_wall.dmi'
-	icon_state = "map-shuttle_nd"
-	base_icon_state = "shuttle_wall"
 	smoothing_flags = SMOOTH_BITMASK
 
 /turf/closed/wall/mineral/titanium/overspace
-	icon_state = "map-overspace"
 	smoothing_flags = SMOOTH_BITMASK | SMOOTH_DIAGONAL_CORNERS
 	fixed_underlay = list("space" = TRUE)
 
@@ -302,17 +283,13 @@
 /turf/closed/wall/mineral/titanium/survival
 	name = "pod wall"
 	desc = "An easily-compressable wall used for temporary shelter."
-	icon = 'icons/turf/walls/survival_pod_walls.dmi'
-	icon_state = "survival_pod_walls-0"
-	base_icon_state = "survival_pod_walls"
+	icon = 'icons/turf/walls/survival_pod_wall.dmi'
 	smoothing_flags = SMOOTH_BITMASK | SMOOTH_DIAGONAL_CORNERS
 	canSmoothWith = SMOOTH_GROUP_SHUTTLE_PARTS + SMOOTH_GROUP_AIRLOCK + SMOOTH_GROUP_WINDOW_FULLTILE + SMOOTH_GROUP_TITANIUM_WALLS
 	rust_resistance = RUST_RESISTANCE_TITANIUM
 
 /turf/closed/wall/mineral/titanium/survival/nodiagonal
-	icon = 'icons/turf/walls/survival_pod_walls.dmi'
-	icon_state = "survival_pod_walls-0"
-	base_icon_state = "survival_pod_walls"
+	icon = 'icons/turf/walls/survival_pod_wall.dmi'
 	smoothing_flags = SMOOTH_BITMASK
 	rust_resistance = RUST_RESISTANCE_TITANIUM
 
@@ -333,8 +310,6 @@
 	name = "wall"
 	desc = "A durable wall made of an alloy of plasma and titanium."
 	icon = 'icons/turf/walls/plastitanium_wall.dmi'
-	icon_state = "plastitanium_wall-0"
-	base_icon_state = "plastitanium_wall"
 	explosive_resistance = 4
 	sheet_type = /obj/item/stack/sheet/mineral/plastitanium
 	hardness = 25 //upgrade on titanium
@@ -352,14 +327,10 @@
 
 
 /turf/closed/wall/mineral/plastitanium/nodiagonal
-	icon = 'icons/turf/walls/plastitanium_wall.dmi'
-	icon_state = "map-shuttle_nd"
-	base_icon_state = "plastitanium_wall"
 	smoothing_flags = SMOOTH_BITMASK
 	rust_resistance = RUST_RESISTANCE_TITANIUM
 
 /turf/closed/wall/mineral/plastitanium/overspace
-	icon_state = "map-overspace"
 	smoothing_flags = SMOOTH_BITMASK | SMOOTH_DIAGONAL_CORNERS
 	fixed_underlay = list("space" = TRUE)
 	rust_resistance = RUST_RESISTANCE_TITANIUM

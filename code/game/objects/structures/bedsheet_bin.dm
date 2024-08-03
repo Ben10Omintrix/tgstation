@@ -69,6 +69,7 @@ LINEN BINS
 		return ITEM_INTERACT_BLOCKING
 
 	forceMove(get_turf(to_cover))
+	pixel_z = to_cover.pixel_z
 	balloon_alert(user, "covered")
 	coverup(to_cover)
 	add_fingerprint(user)
@@ -131,7 +132,6 @@ LINEN BINS
 	UnregisterSignal(sleeper, COMSIG_QDELETING)
 	balloon_alert(sleeper, "smoothed sheets")
 	layer = initial(layer)
-	SET_PLANE_IMPLICIT(src, initial(plane))
 	pixel_z = 0
 	signal_sleeper = null
 

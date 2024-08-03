@@ -20,7 +20,6 @@ GLOBAL_DATUM_INIT(keycard_events, /datum/events, new)
 	var/obj/machinery/keycard_auth/event_source
 	var/mob/triggerer = null
 	var/waiting = FALSE
-
 	COOLDOWN_DECLARE(access_grant_cooldown)
 
 /obj/machinery/keycard_auth/Initialize(mapload)
@@ -166,6 +165,38 @@ MAPPING_DIRECTIONAL_HELPERS(/obj/machinery/keycard_auth/wall_mounted, 26)
 	. = ..()
 	find_and_hang_on_wall()
 
+/obj/machinery/keycard_auth/wall_mounted/directional/north
+	dir = SOUTH
+	pixel_y = 26
+
+/obj/machinery/keycard_auth/wall_mounted/directional/south
+	dir = NORTH
+	pixel_y = 2
+
+/obj/machinery/keycard_auth/wall_mounted/directional/east
+	dir = WEST
+	pixel_x = 12
+
+/obj/machinery/keycard_auth/wall_mounted/directional/west
+	dir = EAST
+	pixel_x = -14
+
+/obj/machinery/keycard_auth/wall_mounted/setDir(newdir)
+	. = ..()
+	switch(newdir)
+		if(NORTH)
+			pixel_x = 0
+			pixel_y = 2
+		if(SOUTH)
+			pixel_x = 0
+			pixel_y = 26
+		if(EAST)
+			pixel_x = -14
+			pixel_y = 0
+		if(WEST)
+			pixel_x = 12
+			pixel_y = 0
+			
 GLOBAL_VAR_INIT(emergency_access, FALSE)
 /proc/make_maint_all_access()
 	for(var/area/station/maintenance/area in GLOB.areas)
