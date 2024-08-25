@@ -371,7 +371,7 @@ multiple modular subtrees with behaviors
 	SEND_SIGNAL(src, COMSIG_AI_CONTROLLER_PICKED_BEHAVIORS, current_behaviors, planned_behaviors)
 	for(var/datum/ai_behavior/forgotten_behavior as anything in current_behaviors - planned_behaviors)
 		var/list/arguments = list(src, FALSE)
-		var/list/stored_arguments = behavior_args[type]
+		var/list/stored_arguments = behavior_args[forgotten_behavior.type]
 		if(stored_arguments)
 			arguments += stored_arguments
 		forgotten_behavior.finish_action(arglist(arguments))
