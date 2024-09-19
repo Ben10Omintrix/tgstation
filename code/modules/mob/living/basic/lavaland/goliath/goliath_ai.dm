@@ -12,7 +12,7 @@
 	planning_subtrees = list(
 		/datum/ai_planning_subtree/target_retaliate/check_faction,
 		/datum/ai_planning_subtree/simple_find_target,
-		/datum/ai_planning_subtree/find_food,
+		/datum/ai_planning_subtree/goliath_find_food,
 		/datum/ai_planning_subtree/targeted_mob_ability/goliath_tentacles,
 		/datum/ai_planning_subtree/attack_obstacle_in_path,
 		/datum/ai_planning_subtree/basic_melee_attack_subtree/goliath,
@@ -119,5 +119,17 @@
 /datum/ai_behavior/goliath_dig/finish_action(datum/ai_controller/controller, succeeded, target_key)
 	. = ..()
 	controller.clear_blackboard_key(target_key)
+
+/datum/ai_planning_subtree/goliath_find_food
+
+/datum/ai_planning_subtree/goliath_find_food/SelectBehaviors(datum/ai_controller/controller, seconds_per_tick)
+	controller.queue_behavior(/datum/ai_behavior/proximity_search/goliath_foods, BB_BASIC_MOB_CURRENT_TARGET)
+
+/datum/ai_behavior/proximity_search/goliath_foods
+
+/datum/ai_behavior/proximity_search/goliath_foods/New()
+	. = ..()
+	accepted_types = typecacheof(GLOB.goliath_foods)
+
 
 #undef MIN_TIME_TO_TENTACLE

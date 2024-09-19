@@ -43,15 +43,15 @@
 /datum/ai_planning_subtree/find_and_hunt_target/hunt_ores
 	target_key = BB_ORE_TARGET
 	hunting_behavior = /datum/ai_behavior/hunt_target/unarmed_attack_target/hunt_ores
-	finding_behavior = /datum/ai_behavior/find_hunt_target/hunt_ores
-	hunt_targets = list(/obj/item/stack/ore)
+	finding_behavior = /datum/ai_behavior/proximity_search/hunt_ores
 	hunt_chance = 90
 	hunt_range = 9
 
-/datum/ai_behavior/find_hunt_target/hunt_ores
+/datum/ai_behavior/proximity_search/hunt_ores
+	accepted_types = list(/obj/item/stack/ore)
 
-/datum/ai_behavior/find_hunt_target/hunt_ores/valid_dinner(mob/living/basic/source, obj/item/stack/ore/target, radius)
-	var/list/forbidden_ore = source.ai_controller.blackboard[BB_ORE_IGNORE_TYPES]
+/datum/ai_behavior/proximity_search/hunt_ores/validate_target(datum/ai_controller/controller, atom/target)
+	var/list/forbidden_ore = controller.blackboard[BB_ORE_IGNORE_TYPES]
 
 	if(is_type_in_list(target, forbidden_ore))
 		return FALSE
@@ -59,11 +59,11 @@
 	if(!isturf(target.loc))
 		return FALSE
 
-	var/obj/item/pet_target = source.ai_controller.blackboard[BB_CURRENT_PET_TARGET]
+	var/obj/item/pet_target = controller.blackboard[BB_CURRENT_PET_TARGET]
 	if(target == pet_target) //we are currently fetching this ore for master, dont eat it!
 		return FALSE
 
-	return can_see(source, target, radius)
+	return can_see(controller.pawn, target)
 
 /datum/ai_behavior/hunt_target/unarmed_attack_target/hunt_ores
 	always_reset_target = TRUE
@@ -72,17 +72,15 @@
 /datum/ai_planning_subtree/find_and_hunt_target/harvest_vents
 	target_key = BB_VENT_TARGET
 	hunting_behavior = /datum/ai_behavior/hunt_target/unarmed_attack_target //We call the ore vent's produce_boulder() proc here to produce a single boulder.
-	finding_behavior = /datum/ai_behavior/find_hunt_target/harvest_vents
+	finding_behavior = /datum/ai_behavior/proximity_search/harvest_vents
 	hunt_targets = list(/obj/structure/ore_vent)
 	hunt_chance = 25
 	hunt_range = 15
 
-/datum/ai_behavior/find_hunt_target/harvest_vents
+/datum/ai_behavior/proximity_search/harvest_vents
+	accepted_types = list(/obj/structure/ore_vent)
 
-/datum/ai_behavior/find_hunt_target/harvest_vents/valid_dinner(mob/living/basic/source, obj/structure/target, radius)
-	if(target in source)
-		return FALSE
-
+/datum/ai_behavior/proximity_search/harvest_vents/validate_target(datum/ai_controller/controller, atom/target)
 	var/turf/vent_turf = target.drop_location()
 	var/counter = 0
 	for(var/obj/item/boulder in vent_turf.contents)
@@ -90,38 +88,36 @@
 		if(counter > MAX_BOULDERS_PER_VENT) //Too many items currently on the vent
 			return FALSE
 
-	return can_see(source, target, radius)
+	return can_see(controller.pawn, target)
 
 ///break boulders so that we can find more food!
 /datum/ai_planning_subtree/find_and_hunt_target/break_boulders
 	target_key = BB_BOULDER_TARGET
 	hunting_behavior = /datum/ai_behavior/hunt_target/unarmed_attack_target //We process boulders once every tap, so we dont need to do anything special here
-	finding_behavior = /datum/ai_behavior/find_hunt_target/break_boulders
+	finding_behavior = /datum/ai_behavior/proximity_search/break_boulders
 	hunt_targets = list(/obj/item/boulder)
 	hunt_chance = 100 //If we can, we should always break boulders.
 	hunt_range = 9
 
-/datum/ai_behavior/find_hunt_target/break_boulders
+/datum/ai_behavior/proximity_search/break_boulders
+	accepted_types = list(/obj/item/boulder)
 
-/datum/ai_behavior/find_hunt_target/break_boulders/valid_dinner(mob/living/basic/source, obj/item/boulder/target, radius)
-	if(target in source)
+/datum/ai_behavior/proximity_search/break_boulders/validate_target(datum/ai_controller/controller, atom/target)
+	var/mob/living/living_pawn = controller.pawn
+	if(target in living_pawn)
 		return FALSE
-
-	var/obj/item/pet_target = source.ai_controller.blackboard[BB_CURRENT_PET_TARGET]
-	if(target == pet_target) //we are currently fetching this ore for master, dont eat it!
-		return FALSE
-	return can_see(source, target, radius)
+	return can_see(living_pawn, target)
 
 ///find our child's egg and pull it!
 /datum/ai_planning_subtree/find_and_hunt_target/baby_egg
 	target_key = BB_LOW_PRIORITY_HUNTING_TARGET
 	hunting_behavior = /datum/ai_behavior/hunt_target/grub_egg
-	finding_behavior = /datum/ai_behavior/find_hunt_target
-	hunt_targets = list(/obj/item/food/egg/green/grub_egg)
+	finding_behavior = /datum/ai_behavior/proximity_search/grub_egg
 	hunt_chance = 75
 	hunt_range = 9
 
-/datum/ai_planning_subtree/find_and_hunt_target/baby_egg
+/datum/ai_behavior/proximity_search/grub_egg
+	accepted_types = list(/obj/item/food/egg/green/grub_egg)
 
 /datum/ai_planning_subtree/find_and_hunt_target/baby_egg/SelectBehaviors(datum/ai_controller/controller, seconds_per_tick)
 	var/mob/living/living_pawn = controller.pawn

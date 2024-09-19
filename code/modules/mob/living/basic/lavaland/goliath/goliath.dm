@@ -48,15 +48,14 @@
 	var/datum/action/cooldown/mob_cooldown/tentacle_burst/melee_tentacles
 	/// Our long-ranged tentacles ability
 	var/datum/action/cooldown/mob_cooldown/tentacle_grasp/tentacle_line
-	/// Things we want to eat off the floor (or a plate, we're not picky)
-	var/static/list/goliath_foods = list(/obj/item/food/grown/ash_flora, /obj/item/food/bait/worm)
 
 /mob/living/basic/mining/goliath/Initialize(mapload)
 	. = ..()
 	ADD_TRAIT(src, TRAIT_TENTACLE_IMMUNE, INNATE_TRAIT)
+//	AddElement(/datum/element/proximity_searcher)
 	AddElement(/datum/element/ai_retaliate)
 	AddElement(/datum/element/footstep, FOOTSTEP_MOB_HEAVY)
-	AddElement(/datum/element/basic_eating, heal_amt = 10, food_types = goliath_foods)
+	AddElement(/datum/element/basic_eating, heal_amt = 10, food_types = GLOB.goliath_foods)
 	AddElement(\
 		/datum/element/change_force_on_death,\
 		move_force = MOVE_FORCE_DEFAULT,\
@@ -81,7 +80,6 @@
 
 	tentacles_ready()
 	RegisterSignal(src, COMSIG_MOB_ABILITY_FINISHED, PROC_REF(used_ability))
-	ai_controller.set_blackboard_key(BB_BASIC_FOODS, typecacheof(goliath_foods))
 	ai_controller.set_blackboard_key(BB_GOLIATH_TENTACLES, tentacles)
 
 /mob/living/basic/mining/goliath/examine(mob/user)

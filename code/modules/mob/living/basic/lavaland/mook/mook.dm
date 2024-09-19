@@ -55,7 +55,7 @@
 	grant_actions_by_list(get_innate_abilities())
 
 	ore_overlay = mutable_appearance(icon, "mook_ore_overlay")
-
+	AddElement(/datum/element/proximity_searcher)
 	AddComponent(/datum/component/ai_listen_to_weather)
 	AddElement(/datum/element/wall_tearer, allow_reinforced = FALSE)
 	RegisterSignal(src, COMSIG_HOSTILE_PRE_ATTACKINGTARGET, PROC_REF(pre_attack))

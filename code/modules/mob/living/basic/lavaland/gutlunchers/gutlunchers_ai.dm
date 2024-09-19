@@ -74,27 +74,27 @@
 /datum/ai_planning_subtree/find_and_hunt_target/food_trough
 	target_key = BB_TROUGH_TARGET
 	hunting_behavior = /datum/ai_behavior/hunt_target/unarmed_attack_target/food_trough
-	finding_behavior = /datum/ai_behavior/find_hunt_target/food_trough
-	hunt_targets = list(/obj/structure/ore_container/food_trough/gutlunch_trough)
+	finding_behavior = /datum/ai_behavior/proximity_search/food_trough
 	hunt_chance = 75
 	hunt_range = 9
 
+/datum/ai_behavior/proximity_search/food_trough
+	accepted_types = list(/obj/structure/ore_container/food_trough/gutlunch_trough)
 
-/datum/ai_planning_subtree/find_and_hunt_target/food_trough/SelectBehaviors(datum/ai_controller/controller, seconds_per_tick)
-	if(!controller.blackboard[BB_CHECK_HUNGRY])
-		return
-	return ..()
-
-/datum/ai_behavior/find_hunt_target/food_trough
-
-/datum/ai_behavior/find_hunt_target/food_trough/valid_dinner(mob/living/basic/source, obj/target, radius)
+/datum/ai_behavior/proximity_search/food_trough/validate_target(datum/ai_controller/controller, atom/target)
 	if(isnull(target))
 		return FALSE
 
 	if(isnull(locate(/obj/item/stack/ore) in target))
 		return FALSE
 
-	return can_see(source, target, radius)
+	return can_see(controller.pawn, target)
+
+
+/datum/ai_planning_subtree/find_and_hunt_target/food_trough/SelectBehaviors(datum/ai_controller/controller, seconds_per_tick)
+	if(!controller.blackboard[BB_CHECK_HUNGRY])
+		return
+	return ..()
 
 /datum/ai_behavior/hunt_target/unarmed_attack_target/food_trough
 	always_reset_target = TRUE

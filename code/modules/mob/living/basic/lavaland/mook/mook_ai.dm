@@ -71,9 +71,11 @@ GLOBAL_LIST_INIT(mook_commands, list(
 /datum/ai_planning_subtree/find_and_hunt_target/material_stand
 	target_key = BB_MATERIAL_STAND_TARGET
 	hunting_behavior = /datum/ai_behavior/hunt_target/unarmed_attack_target/material_stand
-	finding_behavior = /datum/ai_behavior/find_hunt_target
-	hunt_targets = list(/obj/structure/ore_container/material_stand)
+	finding_behavior = /datum/ai_behavior/proximity_search/material_stand
 	hunt_range = 9
+
+/datum/ai_behavior/proximity_search/material_stand
+	accepted_types = list(/obj/structure/ore_container/material_stand)
 
 /datum/ai_planning_subtree/find_and_hunt_target/material_stand/SelectBehaviors(datum/ai_controller/controller, seconds_per_tick)
 	var/mob/living/living_pawn = controller.pawn
@@ -233,7 +235,7 @@ GLOBAL_LIST_INIT(mook_commands, list(
 
 /datum/ai_planning_subtree/play_music_for_visitor/SelectBehaviors(datum/ai_controller/controller, seconds_per_tick)
 	if(!controller.blackboard_key_exists(BB_MOOK_MUSIC_AUDIENCE))
-		controller.queue_behavior(/datum/ai_behavior/find_and_set/music_audience, BB_MOOK_MUSIC_AUDIENCE, /mob/living/carbon/human)
+		controller.queue_behavior(/datum/ai_behavior/proximity_search/music_audience, BB_MOOK_MUSIC_AUDIENCE)
 		return
 	var/atom/home = controller.blackboard[BB_HOME_VILLAGE]
 	if(isnull(home))
@@ -246,16 +248,16 @@ GLOBAL_LIST_INIT(mook_commands, list(
 
 	controller.queue_behavior(/datum/ai_behavior/travel_towards, BB_MOOK_MUSIC_AUDIENCE)
 
-/datum/ai_behavior/find_and_set/music_audience
+/datum/ai_behavior/proximity_search/music_audience
+	accepted_types = list(/mob/living/carbon/human)
 
-/datum/ai_behavior/find_and_set/music_audience/search_tactic(datum/ai_controller/controller, locate_path, search_range)
+/datum/ai_behavior/proximity_search/music_audience/validate_target(datum/ai_controller/controller, mob/living/target)
 	var/atom/home = controller.blackboard[BB_HOME_VILLAGE]
-	for(var/mob/living/carbon/human/target in oview(search_range, controller.pawn))
-		if(target.stat > UNCONSCIOUS || !target.mind)
-			continue
-		if(isnull(home) || get_dist(target, home) > controller.blackboard[BB_MAXIMUM_DISTANCE_TO_VILLAGE])
-			continue
-		return target
+	if(target.stat > UNCONSCIOUS || isnull(target.mind))
+		return FALSE
+	if(isnull(home) || get_dist(target, home) > controller.blackboard[BB_MAXIMUM_DISTANCE_TO_VILLAGE])
+		return FALSE
+	return TRUE
 
 /datum/idle_behavior/walk_near_target/mook_village
 	target_key = BB_HOME_VILLAGE
@@ -284,21 +286,21 @@ GLOBAL_LIST_INIT(mook_commands, list(
 /datum/ai_planning_subtree/acknowledge_chief/SelectBehaviors(datum/ai_controller/controller, seconds_per_tick)
 	if(controller.blackboard_key_exists(BB_MOOK_TRIBAL_CHIEF))
 		return
-	controller.queue_behavior(/datum/ai_behavior/find_and_set/find_chief, BB_MOOK_TRIBAL_CHIEF, /mob/living/basic/mining/mook/worker/tribal_chief)
+	controller.queue_behavior(/datum/ai_behavior/proximity_search/find_chief, BB_MOOK_TRIBAL_CHIEF)
 
-/datum/ai_behavior/find_and_set/find_chief/search_tactic(datum/ai_controller/controller, locate_path, search_range)
-	var/mob/living/chief = locate(locate_path) in oview(search_range, controller.pawn)
-	if(isnull(chief))
-		return null
+/datum/ai_behavior/proximity_search/find_chief
+	accepted_types = list(/mob/living/basic/mining/mook/worker/tribal_chief)
+
+/datum/ai_behavior/proximity_search/find_chief/validate_target(datum/ai_controller/controller, mob/living/chief)
 	var/mob/living/living_pawn = controller.pawn
 	living_pawn.befriend(chief)
-	return chief
+	return TRUE
 
 ///find injured miner mooks after they come home from a long day of work
 /datum/ai_planning_subtree/find_and_hunt_target/injured_mooks
 	target_key = BB_INJURED_MOOK
 	hunting_behavior = /datum/ai_behavior/hunt_target/unarmed_attack_target/injured_mooks
-	finding_behavior = /datum/ai_behavior/find_hunt_target/injured_mooks
+	finding_behavior = /datum/ai_behavior/proximity_search/injured_mooks
 	hunt_targets = list(/mob/living/basic/mining/mook/worker)
 	hunt_range = 9
 
@@ -307,10 +309,9 @@ GLOBAL_LIST_INIT(mook_commands, list(
 	if(controller.blackboard[BB_STORM_APPROACHING])
 		return ..()
 
+/datum/ai_behavior/proximity_search/injured_mooks
 
-/datum/ai_behavior/find_hunt_target/injured_mooks
-
-/datum/ai_behavior/find_hunt_target/injured_mooks/valid_dinner(mob/living/source, mob/living/injured_mook)
+/datum/ai_behavior/proximity_search/injured_mooks/validate_target(datum/ai_controller/controller, mob/living/injured_mook)
 	return (injured_mook.health < injured_mook.maxHealth)
 
 /datum/ai_behavior/hunt_target/unarmed_attack_target/injured_mooks
@@ -404,19 +405,19 @@ GLOBAL_LIST_INIT(mook_commands, list(
 
 /datum/ai_planning_subtree/find_and_hunt_target/bonfire
 	target_key = BB_MOOK_BONFIRE_TARGET
-	finding_behavior = /datum/ai_behavior/find_hunt_target/bonfire
+	finding_behavior = /datum/ai_behavior/proximity_search/bonfire
 	hunting_behavior = /datum/ai_behavior/hunt_target/unarmed_attack_target/bonfire
-	hunt_targets = list(/obj/structure/bonfire)
 	hunt_range = 9
 
 
-/datum/ai_behavior/find_hunt_target/bonfire
+/datum/ai_behavior/proximity_search/bonfire
+	accepted_types = list(/obj/structure/bonfire)
 
-/datum/ai_behavior/find_hunt_target/bonfire/valid_dinner(mob/living/source, obj/structure/bonfire/fire, radius)
+/datum/ai_behavior/proximity_search/bonfire/validate_target(datum/ai_controller/controller, obj/structure/bonfire/fire)
 	if(fire.burning)
 		return FALSE
 
-	return can_see(source, fire, radius)
+	return can_see(controller.pawn, fire)
 
 /datum/ai_behavior/hunt_target/unarmed_attack_target/bonfire
 	always_reset_target = TRUE

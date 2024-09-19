@@ -1,17 +1,19 @@
 /datum/ai_behavior/hunt_target/unarmed_attack_target/heal_raptor
 	always_reset_target = TRUE
 
-/datum/ai_behavior/find_hunt_target/injured_raptor
+/datum/ai_behavior/proximity_search/injured_raptor
+	accepted_types = list(/mob/living/basic/raptor)
 
-/datum/ai_behavior/find_hunt_target/injured_raptor/valid_dinner(mob/living/source, mob/living/target, radius)
-	return (source != target && target.health < target.maxHealth)
+/datum/ai_behavior/proximity_search/injured_raptor/validate_target(datum/ai_controller/controller, mob/living/target)
+	return (controller.pawn != target && target.health < target.maxHealth)
 
-/datum/ai_behavior/find_hunt_target/raptor_victim
+/datum/ai_behavior/proximity_search/raptor_victim
+	accepted_types = list(/mob/living/basic/raptor)
 
-/datum/ai_behavior/find_hunt_target/raptor_victim/valid_dinner(mob/living/source, mob/living/target, radius)
+/datum/ai_behavior/proximity_search/raptor_victim/validate_target(datum/ai_controller/controller, mob/living/target)
 	if(target.ai_controller?.blackboard[BB_RAPTOR_TROUBLE_MAKER])
 		return FALSE
-	return target.stat != DEAD && can_see(source, target, radius) 
+	return target.stat != DEAD && can_see(controller.pawn, target)
 
 /datum/ai_behavior/hunt_target/unarmed_attack_target/bully_raptors
 	always_reset_target = TRUE
@@ -21,8 +23,11 @@
 		controller.set_blackboard_key(BB_RAPTOR_TROUBLE_COOLDOWN, world.time + 2 MINUTES)
 	return ..()
 
-/datum/ai_behavior/find_hunt_target/raptor_baby/valid_dinner(mob/living/source, mob/living/target, radius)
-	return can_see(source, target, radius) && target.stat != DEAD
+/datum/ai_behavior/proximity_search/raptor_baby
+	accepted_types = list(/mob/living/basic/raptor/baby_raptor)
+
+/datum/ai_behavior/proximity_search/raptor_baby/validate_target(datum/ai_controller/controller, mob/living/target)
+	return can_see(controller.pawn, target) && target.stat != DEAD
 
 /datum/ai_behavior/hunt_target/care_for_young
 	always_reset_target = TRUE
@@ -37,9 +42,10 @@
 	living_pawn.set_combat_mode(initial(living_pawn.combat_mode))
 	return ..()
 
-/datum/ai_behavior/find_hunt_target/raptor_trough
+/datum/ai_behavior/proximity_search/raptor_trough
+	accepted_types = list(/obj/structure/ore_container/food_trough/raptor_trough)
 
-/datum/ai_behavior/find_hunt_target/raptor_trough/valid_dinner(mob/living/source, atom/movable/trough, radius)
+/datum/ai_behavior/proximity_search/raptor_trough/validate_target(datum/ai_controller/controller, atom/trough)
 	return !!(locate(/obj/item/stack/ore) in trough.contents)
 
 /datum/ai_behavior/hunt_target/unarmed_attack_target/raptor_trough
