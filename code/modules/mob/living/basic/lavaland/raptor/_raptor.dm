@@ -99,7 +99,7 @@ GLOBAL_LIST_EMPTY(raptor_population)
 	inherit_properties()
 	RegisterSignal(src, COMSIG_HOSTILE_PRE_ATTACKINGTARGET, PROC_REF(pre_attack))
 	var/static/list/my_food = list(/obj/item/stack/ore)
-//	AddElement(/datum/element/proximity_searcher)
+	AddElement(/datum/element/proximity_searcher)
 	AddElement(/datum/element/basic_eating, food_types = my_food)
 	AddElement(/datum/element/ai_retaliate)
 	AddElement(/datum/element/ai_flee_while_injured, stop_fleeing_at = 0.5, start_fleeing_below = 0.2)
@@ -313,11 +313,5 @@ GLOBAL_LIST_EMPTY(raptor_population)
 /datum/storage/raptor_storage/on_mousedropped_onto(datum/source, obj/item/dropping, mob/user)
 	..()
 	return NONE
-
-/mob/living/basic/raptor/moklarta
-
-/mob/living/basic/raptor/moklarta/Initialize(mapload)
-	. = ..()
-	AddElement(/datum/element/proximity_searcher)
 
 #undef HAPPINESS_BOOST_DAMPENER

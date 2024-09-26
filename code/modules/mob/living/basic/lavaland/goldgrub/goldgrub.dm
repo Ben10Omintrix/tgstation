@@ -51,7 +51,7 @@
 		/datum/action/cooldown/mob_cooldown/spit_ore = BB_SPIT_ABILITY,
 		/datum/action/cooldown/mob_cooldown/burrow = BB_BURROW_ABILITY,
 	)
-//	AddElement(/datum/element/proximity_searcher)
+	AddElement(/datum/element/proximity_searcher)
 	grant_actions_by_list(innate_actions)
 	AddElement(/datum/element/ore_collecting)
 	AddElement(/datum/element/wall_tearer, allow_reinforced = FALSE)

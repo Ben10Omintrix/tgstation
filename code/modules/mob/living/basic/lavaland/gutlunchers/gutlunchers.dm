@@ -40,7 +40,7 @@
 	AddElement(/datum/element/ai_retaliate)
 	if(!can_breed)
 		return
-//	AddElement(/datum/element/proximity_searcher)
+	AddElement(/datum/element/proximity_searcher)
 	AddComponent(\
 		/datum/component/breed,\
 		can_breed_with = typecacheof(list(/mob/living/basic/mining/gutlunch)),\
