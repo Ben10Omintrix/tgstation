@@ -172,6 +172,8 @@
 #define BB_PROXIMITY_SEARCH_FIELD "proximity_search_field"
 ///key holding the list of items we found
 #define BB_PROXIMITY_FOUND_ITEMS(behavior_type) "proximity_found_items_[behavior_type]"
+///key holding the state of the find behavior
+#define BB_PROXIMITY_ABLE_TO_SEARCH(behavior_type) "proximity_able_to_search_[behavior_type]"
 
 
 ///mothroach next meal key!

@@ -445,7 +445,7 @@ multiple modular subtrees with behaviors
 		behavior_args -= behavior_type
 
 	if(!(behavior.behavior_flags & AI_BEHAVIOR_CAN_PLAN_DURING_EXECUTION)) //this one blocks planning!
-		able_to_plan = FALSE
+		set_able_to_plan(FALSE)
 
 	SEND_SIGNAL(src, AI_CONTROLLER_BEHAVIOR_QUEUED(behavior_type), arguments)
 
@@ -457,7 +457,7 @@ multiple modular subtrees with behaviors
 
 /datum/ai_controller/proc/dequeue_behavior(datum/ai_behavior/behavior)
 	current_behaviors -= behavior
-	able_to_plan = check_able_to_plan()
+	set_able_to_plan(check_able_to_plan())
 
 /datum/ai_controller/proc/ProcessBehavior(seconds_per_tick, datum/ai_behavior/behavior)
 	var/list/arguments = list(seconds_per_tick, src)
@@ -476,6 +476,10 @@ multiple modular subtrees with behaviors
 		arguments[1] = src
 		arguments[2] = TRUE
 		behavior.finish_action(arglist(arguments))
+
+/datum/ai_controller/proc/set_able_to_plan(new_mode)
+	able_to_plan = new_mode
+	SEND_SIGNAL(src, COMSIG_AI_PLAN_STATUS_CHANGED, new_mode)
 
 /datum/ai_controller/proc/CancelActions()
 	if(!length(current_behaviors))

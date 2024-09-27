@@ -33,6 +33,10 @@
 			controller.insert_blackboard_key(BB_PROXIMITY_FOUND_ITEMS(type), interesting_object)
 
 /datum/ai_behavior/proximity_search/proc/get_first_build(datum/ai_controller/controller)
-	for(var/atom/possible_atom as anything in oview(9, living_mob))
+	for(var/atom/possible_atom as anything in oview(9, controller.pawn))
 		if(is_type_in_typecache(possible_atom, accepted_types))
-			controller.insert_blackboard_key(BB_PROXIMITY_FOUND_ITEMS(type), movable)
+			controller.insert_blackboard_key(BB_PROXIMITY_FOUND_ITEMS(type), accepted_types)
+	var/datum/proximity_monitor/advanced/ai_proximity_search/proximity_field = controller.blackboard[BB_PROXIMITY_SEACH_FIELD]
+	if(!proximity_field.subscribed_behaviors[src])
+		proximity_field.subscribe_to_field(src)
+	controller.set_blackboard_key(BB_PROXIMITY_ABLE_TO_SEARCH(type), TRUE)
