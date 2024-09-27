@@ -5,20 +5,22 @@
 	var/datum/ai_controller/controller
 	/// List of subscribed behaviors
 	var/list/subscribed_behaviors = list()
+	/// is our sensor currently active?
+	var/currently_active = TRUE
+	/// Behavior that is currently blocking our planning
+	var/datum/ai_behavior/blocking_behavior
 
 // Initially, run the check manually
 // If that fails, set up a field and have it manage the behavior fully
 /datum/proximity_monitor/advanced/ai_proximity_search/New(atom/_host, range, _ignore_if_not_on_turf = TRUE, datum/ai_controller/controller)
 	. = ..()
 	src.controller = controller
-	RegisterSignal(controller, COMSIG_AI_PLAN_STATUS_CHANGED, PROC_REF(on_ai_planning_change))
-	recalculate_field(full_recalc = TRUE)
+	RegisterSignal(controller, COMSIG_AI_CONTROLLER_QUEUED_BEHAVIOR, PROC_REF(on_behavior_queue))
 	controller.set_blackboard_key(BB_PROXIMITY_SEARCH_FIELD, src)
-
+	recalculate_field(full_recalc = TRUE)
 
 /datum/proximity_monitor/advanced/ai_proximity_search/proc/subscribe_to_field(datum/ai_behavior/behavior, /datum/ai_controller/controller)
 	subscribed_behaviors[behavior] = TRUE
-	controller.override_blackboard_key(BB_PROXIMITY_FOUND_ITEMS(behavior.type), list())
 
 /datum/proximity_monitor/advanced/ai_proximity_search/Destroy()
 	. = ..()
@@ -29,7 +31,7 @@
 	return ..()
 
 /datum/proximity_monitor/advanced/ai_proximity_search/setup_field_turf(turf/target)
-	if(!controller.able_to_plan)
+	if(blocking_behavior)
 		return
 	for(var/datum/ai_behavior/proximity_search/behavior as anything in subscribed_behaviors)
 		behavior.analyze_turf(target, controller)
@@ -38,14 +40,25 @@
 	setup_field_turf(target)
 
 /datum/proximity_monitor/advanced/ai_proximity_search/field_turf_crossed(atom/movable/movable, turf/location, turf/old_location)
-	if(!controller.able_to_plan)
+	if(blocking_behavior)
 		return
 	for(var/datum/ai_behavior/proximity_search/behavior as anything in subscribed_behaviors)
 		if(is_type_in_typecache(movable, behavior.accepted_types))
 			controller.insert_blackboard_key(BB_PROXIMITY_FOUND_ITEMS(behavior.type), movable)
 
-/datum/proximity_monitor/advanced/ai_proximity_search/proc/on_ai_planning_change(datum/source, new_status)
-	if(new_status)
+/datum/proximity_monitor/advanced/ai_proximity_search/proc/on_behavior_queue(datum/ai_controller/controller, datum/ai_behavior/new_behavior)
+	SIGNAL_HANDLER
+	if(blocking_behavior || controller.able_to_plan || !(new_behavior.behavior_flags & AI_BEHAVIOR_REQUIRE_MOVEMENT))
 		return
+	set_blocking_behavior(new_behavior)
+
+/datum/proximity_monitor/advanced/ai_proximity_search/proc/set_blocking_behavior(datum/ai_behavior/new_behavior)
+	blocking_behavior = new_behavior
+	RegisterSignal(controller, COMSIG_AI_CONTROLLER_BEHAVIOR_DEQUEUED(blocking_behavior.type), PROC_REF(on_behavior_dequeue))
 	for(var/datum/ai_behavior/proximity_search/behavior as anything in subscribed_behaviors)
 		controller.set_blackboard_key(BB_PROXIMITY_ABLE_TO_SEARCH(behavior.type), FALSE)
+
+/datum/proximity_monitor/advanced/ai_proximity_search/proc/on_behavior_dequeue(datum/ai_controller/controller)
+	SIGNAL_HANDLER
+	UnregisterSignal(controller, COMSIG_AI_CONTROLLER_BEHAVIOR_DEQUEUED(blocking_behavior.type))
+	blocking_behavior = null

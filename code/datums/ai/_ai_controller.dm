@@ -448,6 +448,7 @@ multiple modular subtrees with behaviors
 		set_able_to_plan(FALSE)
 
 	SEND_SIGNAL(src, AI_CONTROLLER_BEHAVIOR_QUEUED(behavior_type), arguments)
+	SEND_SIGNAL(src, COMSIG_AI_CONTROLLER_QUEUED_BEHAVIOR, behavior, arguments)
 
 /datum/ai_controller/proc/check_able_to_plan()
 	for(var/datum/ai_behavior/current_behavior as anything in current_behaviors)
@@ -458,6 +459,7 @@ multiple modular subtrees with behaviors
 /datum/ai_controller/proc/dequeue_behavior(datum/ai_behavior/behavior)
 	current_behaviors -= behavior
 	set_able_to_plan(check_able_to_plan())
+	SEND_SIGNAL(src, COMSIG_AI_CONTROLLER_BEHAVIOR_DEQUEUED(behavior.type))
 
 /datum/ai_controller/proc/ProcessBehavior(seconds_per_tick, datum/ai_behavior/behavior)
 	var/list/arguments = list(seconds_per_tick, src)
