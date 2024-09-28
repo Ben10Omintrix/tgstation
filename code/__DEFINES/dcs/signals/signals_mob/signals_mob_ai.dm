@@ -14,3 +14,5 @@
 
 ///Signal sent when our able_to_plan status is changed
 #define COMSIG_AI_PLAN_STATUS_CHANGED "plan_status_changed"
+///Signal sent off of ai/movement/proc/start_moving_towards
+#define COMSIG_MOB_AI_MOVEMENT_STARTED "mob_ai_movement_started"
