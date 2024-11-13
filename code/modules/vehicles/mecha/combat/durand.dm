@@ -87,7 +87,7 @@
 /obj/vehicle/sealed/mecha/durand/proc/prehit(obj/projectile/source, list/signal_args)
 	SIGNAL_HANDLER
 	if(defense_check(source.loc) && shield)
-		signal_args[2] = shield
+		signal_args[1] = shield
 
 /**Checks if defense mode is enabled, and if the attacker is standing in an area covered by the shield.
 Expects a turf. Returns true if the attack should be blocked, false if not.*/
