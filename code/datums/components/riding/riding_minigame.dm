@@ -1,6 +1,8 @@
-
 #define STARTING_ARROW_POSITION -50
 #define ENDING_ARROW_POSITION 20
+#define VERTICAL_ARROW_HEIGHT 13
+#define HORIZONTAL_ARROW_HEIGHT 9
+#define FADE_AWAY_TIME 0.1 SECONDS
 
 //a simple minigame players must win to mount and tame a mob
 /datum/riding_minigame
@@ -28,11 +30,12 @@
 	var/list/cached_arrows = list()
 	///speed of our arrow
 	var/arrow_speed = 45
-	///speed multiplier for easy settings
-	var/easy_speed_multiplier = 0.9
-	///difficult multiplier for difficult settings
-	var/difficult_speed_multiplier = 1.1
-	var/arrow_height = 16
+	///time to linger
+	var/linger_time = 0.3 SECONDS
+	///multiplier for easy settings
+	var/easy_difficulty_multiplier = 1.1
+	///multiplier for hard settings
+	var/hard_difficulty_multiplier = 0.9
 	///cooldown when we fail
 	COOLDOWN_DECLARE(failure_cooldown)
 
@@ -54,9 +57,9 @@
 
 /datum/riding_minigame/proc/set_difficulty(mob/living/ridden, mob/living/rider)
 	if(HAS_TRAIT(rider, TRAIT_BEAST_EMPATHY) || HAS_TRAIT(ridden, TRAIT_MOB_EASY_TO_MOUNT))
-		arrow_speed *= easy_speed_multiplier
+		linger_time *= easy_difficulty_multiplier
 	if(HAS_TRAIT(ridden, TRAIT_MOB_DIFFICULT_TO_MOUNT))
-		arrow_speed *= difficult_speed_multiplier
+		linger_time *= hard_difficulty_multiplier
 	to_chat(world, arrow_speed)
 
 /datum/riding_minigame/proc/generate_visuals()
@@ -73,6 +76,7 @@
 		new_arrow.icon_state = "blank_arrow"
 		new_arrow.setDir(text2dir(direction))
 		new_arrow.pixel_x = x_offset
+		new_arrow.pixel_y = ENDING_ARROW_POSITION
 		new_arrow.layer = ABOVE_ALL_MOB_LAYER
 		minigame_holder.vis_contents += new_arrow
 		cached_arrows[direction] = list("visual_object" = new_arrow, "is_active" = null)
@@ -109,6 +113,7 @@
 		"south" = 32,
 		"east" = 48,
 	)
+
 	current_attempts++
 	var/picked_arrow = pick(possible_arrows)
 	var/obj/effect/overlay/vis/ride_minigame/new_arrow = new
@@ -119,13 +124,24 @@
 	new_arrow.pixel_x = possible_arrows[picked_arrow]
 	new_arrow.pixel_y = STARTING_ARROW_POSITION
 	minigame_holder.vis_contents += new_arrow
+
 	animate(new_arrow, alpha = 255, time = 0.15 SECONDS)
 	animate(new_arrow, pixel_y = ENDING_ARROW_POSITION, time = ((ENDING_ARROW_POSITION - STARTING_ARROW_POSITION) / arrow_speed) SECONDS)
-	addtimer(CALLBACK(src, PROC_REF(add_active_arrow), new_arrow, picked_arrow), ((0 - (STARTING_ARROW_POSITION + arrow_height)) / arrow_speed) SECONDS)
+
+	addtimer(CALLBACK(src, PROC_REF(add_active_arrow), new_arrow, picked_arrow), ((ENDING_ARROW_POSITION - (STARTING_ARROW_POSITION + get_arrow_height(picked_arrow))) / arrow_speed) SECONDS)
+
+/datum/riding_minigame/proc/get_arrow_height(text_direction)
+	var/direction = text2dir(text_direction)
+	return NSCOMPONENT(direction) ? VERTICAL_ARROW_HEIGHT : HORIZONTAL_ARROW_HEIGHT
 
 /datum/riding_minigame/proc/add_active_arrow(atom/arrow, direction)
 	if(QDELETED(arrow))
 		return
+
+	if(!COOLDOWN_FINISHED(src, failure_cooldown))
+		remove_active_arrow(arrow, direction)
+		return
+
 	var/mob/living/rider = mounter?.resolve()
 	if(isnull(rider))
 		return
@@ -134,16 +150,16 @@
 		return
 	cached_arrows[direction]["is_active"] = arrow
 	RegisterSignal(arrow, COMSIG_QDELETING, PROC_REF(on_arrow_delete))
-	var/ping_accounting = min(0, 0.2) SECONDS
-	var/distance_to_travel = arrow_height * 2
-	var/time_of_grace = (distance_to_travel / arrow_speed) SECONDS + ping_accounting - 0.1 SECONDS
+	var/ping_accounting = min(rider_client.avgping / 1000, 0.25) SECONDS
+	var/distance_to_travel = get_arrow_height(direction) * 2
+	var/time_of_grace = (distance_to_travel / arrow_speed) SECONDS + linger_time + ping_accounting - FADE_AWAY_TIME
 	addtimer(CALLBACK(src, PROC_REF(remove_active_arrow), arrow, direction), time_of_grace)
 
 /datum/riding_minigame/proc/remove_active_arrow(atom/arrow, direction)
 	if(QDELETED(arrow))
 		return
-	animate(arrow, alpha = 0, time = 0.1 SECONDS)
-	QDEL_IN(arrow, 0.1 SECONDS)
+	animate(arrow, alpha = 0, time = FADE_AWAY_TIME)
+	QDEL_IN(arrow, FADE_AWAY_TIME)
 
 /datum/riding_minigame/proc/on_arrow_delete(datum/source)
 	SIGNAL_HANDLER
@@ -172,8 +188,13 @@
 		var/obj/my_arrow = cached_arrows[arrow_direction]["visual_object"]
 		if(isnull(my_arrow))
 			continue
+		var/atom/clickable_arrow = cached_arrows[arrow_direction]["is_active"]
+		if(!QDELETED(clickable_arrow))
+			qdel(clickable_arrow)
+		my_arrow.layer = ABOVE_ALL_MOB_LAYER + 0.2
 		flick("blank_arrow_lose", my_arrow)
 		my_arrow.Shake(duration = 2 SECONDS)
+		addtimer(VARSET_CALLBACK(my_arrow, layer, ABOVE_ALL_MOB_LAYER), 2 SECONDS)
 
 	increment_failure()
 
@@ -236,3 +257,8 @@
 /obj/effect/overlay/vis/ride_minigame
 	vis_flags = VIS_INHERIT_PLANE
 
+#undef STARTING_ARROW_POSITION
+#undef ENDING_ARROW_POSITION
+#undef VERTICAL_ARROW_HEIGHT
+#undef HORIZONTAL_ARROW_HEIGHT
+#undef FADE_AWAY_TIME
