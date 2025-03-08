@@ -186,6 +186,7 @@ GLOBAL_LIST_EMPTY(raptor_population)
 	for(var/trait in GLOB.raptor_inherit_traits) // done this way to allow overriding of traits when assigned new inherit datum
 		var/should_inherit = (trait in inherited_stats.inherit_traits)
 		ai_controller?.set_blackboard_key(trait, should_inherit)
+
 	melee_damage_lower += inherited_stats.attack_modifier
 	melee_damage_upper += melee_damage_lower + 5
 	maxHealth += inherited_stats.health_modifier

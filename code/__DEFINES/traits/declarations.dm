@@ -1289,6 +1289,12 @@ Remember to update _globalvars/traits.dm if you're adding/removing/renaming trai
 ///trait given to food that can be baked by /datum/component/bakeable
 #define TRAIT_BAKEABLE "bakeable"
 
+///trait given to mobs that are difficult to tame through mounting
+#define TRAIT_MOB_DIFFICULT_TO_MOUNT "difficult_to_mount"
+
+///trait given to mobs that are easy to tame through mounting
+#define TRAIT_MOB_EASY_TO_MOUNT "easy_to_mount"
+
 /// Trait given to foam darts that have an insert in them
 #define TRAIT_DART_HAS_INSERT "dart_has_insert"
 
