@@ -1102,3 +1102,7 @@ GLOBAL_LIST_INIT(regal_rat_minion_commands, list(
 	/datum/pet_command/follow,
 	/datum/pet_command/attack/mouse
 ))
+
+#define MOB_STATE_ACTIVE "mob active"
+#define MOB_STATE_DORMANT "mob dormant"
+#define MOB_ACTIVITY_DISTANCE 10

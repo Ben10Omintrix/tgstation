@@ -237,6 +237,10 @@
 	/// Living mob's mood datum
 	var/datum/mood/mob_mood
 
+	var/current_active_state = MOB_STATE_ACTIVE
+	///cell tracker for tracking whether we're active or dormant
+	var/datum/cell_tracker/tracked_cells
+
 	// Multiple imaginary friends!
 	/// Contains the owner and all imaginary friend mobs if they exist, otherwise null
 	var/list/imaginary_group = null

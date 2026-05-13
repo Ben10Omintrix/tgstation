@@ -17,6 +17,7 @@
 	SSpoints_of_interest.make_point_of_interest(src)
 	update_fov()
 	gravity_setup()
+	initialize_cell_tracker()
 
 /mob/living/prepare_huds()
 	..()
@@ -46,6 +47,8 @@
 		QDEL_LIST(imaginary_group)
 	QDEL_LAZYLIST(diseases)
 	QDEL_LAZYLIST(quirks)
+	tracked_cells = null
+	GLOB.living_mob_list_by_state[current_active_state] -= src
 	return ..()
 
 /mob/living/onZImpact(turf/impacted_turf, levels, impact_flags = NONE)
@@ -1068,6 +1071,9 @@
 		var/bleeding_check = blood_flow > 3 && prob(blood_flow * 16)
 		if(health_check || bleeding_check)
 			make_blood_trail(newloc, old_loc, old_direction, direct)
+
+	if(tracked_cells)
+		update_cell_tracker()
 
 ///Called by mob Move() when the lying_angle is different than zero, to better visually simulate crawling.
 /mob/living/proc/lying_angle_on_movement(direct)

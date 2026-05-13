@@ -44,6 +44,12 @@ GLOBAL_LIST_EMPTY(bots_list)
 GLOBAL_LIST_EMPTY(camera_eyes)
 GLOBAL_LIST_EMPTY(suit_sensors_list) //all people with suit sensors on
 
+///living mobs by state
+GLOBAL_LIST_INIT(living_mob_list_by_state, list(
+	MOB_STATE_ACTIVE = list(),
+	MOB_STATE_DORMANT = list(),
+))
+
 /// All alive mobs with clients.
 GLOBAL_LIST_EMPTY(alive_player_list)
 
