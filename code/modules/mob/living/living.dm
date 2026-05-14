@@ -17,7 +17,7 @@
 	SSpoints_of_interest.make_point_of_interest(src)
 	update_fov()
 	gravity_setup()
-	initialize_cell_tracker()
+	update_tracker_status()
 
 /mob/living/prepare_huds()
 	..()
@@ -2006,6 +2006,7 @@ GLOBAL_LIST_EMPTY(fire_appearances)
 /mob/living/on_changed_z_level(turf/old_turf, turf/new_turf, same_z_layer, notify_contents)
 	..()
 	update_z(new_turf?.z)
+	update_tracker_status()
 
 /mob/living/mouse_drop_receive(atom/dropping, atom/user, params)
 	var/mob/living/U = user

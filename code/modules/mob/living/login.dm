@@ -19,5 +19,4 @@
 	med_hud_set_status()
 
 	update_fov_client()
-	disregard_cell_tracker()
-	update_mob_state(MOB_STATE_ACTIVE)
+	update_tracker_status()

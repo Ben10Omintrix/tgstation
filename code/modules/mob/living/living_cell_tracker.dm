@@ -2,11 +2,21 @@
 	tracked_cells = new(MOB_ACTIVITY_DISTANCE, MOB_ACTIVITY_DISTANCE, 1)
 	update_cell_tracker()
 
+/mob/living/proc/update_tracker_status()
+	if((client || is_station_level(z)))
+		disregard_cell_tracker()
+		return
+	if(isnull(tracked_cells))
+		initialize_cell_tracker()
+
 /mob/living/proc/disregard_cell_tracker()
+	if(isnull(tracked_cells))
+		return
 	for(var/datum/spatial_grid_cell/current_grid as anything in tracked_cells.member_cells)
 		UnregisterSignal(current_grid, list(SPATIAL_GRID_CELL_ENTERED(SPATIAL_GRID_CONTENTS_TYPE_CLIENTS), SPATIAL_GRID_CELL_EXITED(SPATIAL_GRID_CONTENTS_TYPE_CLIENTS)))
 
 	tracked_cells = null
+	update_mob_state(MOB_STATE_ACTIVE)
 
 /mob/living/proc/update_cell_tracker()
 	var/turf/our_turf = get_turf(src)
