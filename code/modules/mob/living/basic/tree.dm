@@ -100,15 +100,18 @@
 		)
 
 /datum/ai_controller/basic_controller/tree
+	behavior_tree_json = "tree.bt.json"
 	blackboard = list(
 		BB_TARGETING_STRATEGY = /datum/targeting_strategy/basic,
+		BB_BASIC_MOB_SPEAK_LINES = list(
+			BB_EMOTE_SEE = list("photosynthesizes angrily."),
+			BB_SPEAK_CHANCE = 3,
+		),
 	)
 
 	ai_movement = /datum/ai_movement/basic_avoidance
-	idle_behavior = /datum/idle_behavior/idle_random_walk/less_walking
-	planning_subtrees = list(
-		/datum/ai_planning_subtree/escape_captivity,
-		/datum/ai_planning_subtree/simple_find_target,
-		/datum/ai_planning_subtree/basic_melee_attack_subtree,
-		/datum/ai_planning_subtree/random_speech/tree,
-	)
+
+
+///holy shit lois tree subtree
+/datum/bt_node/subtree/tree_speech_subtree
+	behavior_tree_json = "tree_speech_subtree.bt.json"

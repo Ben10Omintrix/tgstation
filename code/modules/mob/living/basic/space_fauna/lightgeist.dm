@@ -79,7 +79,7 @@
 	ai_movement = /datum/ai_movement/basic_avoidance
 	idle_behavior = /datum/idle_behavior/idle_random_walk/less_walking
 
-	planning_subtrees = list(
+	behavior_nodes = list(
 		/datum/ai_planning_subtree/simple_find_target,
 		/datum/ai_planning_subtree/basic_melee_attack_subtree, // We heal things by attacking them
 	)
@@ -91,7 +91,7 @@
 	/// Type of limb we can heal
 	var/required_bodytype = BODYTYPE_ORGANIC
 
-/datum/targeting_strategy/lightgeist/can_attack(mob/living/living_mob, mob/living/target, vision_range)
+/datum/targeting_strategy/lightgeist/is_valid_target(mob/living/living_mob, mob/living/target, vision_range)
 	if (!isliving(target) || target.stat == DEAD)
 		return FALSE
 	if (!(heal_biotypes & target.mob_biotypes))

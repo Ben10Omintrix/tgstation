@@ -1,4 +1,5 @@
 /datum/ai_controller/basic_controller/turtle
+	behavior_tree_json = "turtle.bt.json"
 	blackboard = list(
 		BB_HAPPY_EMOTIONS = list(
 			"wiggles its tree in excitement!",
@@ -15,17 +16,6 @@
 		),
 	)
 	ai_movement = /datum/ai_movement/basic_avoidance
-	idle_behavior = /datum/idle_behavior/idle_random_walk/less_walking
-	planning_subtrees = list(
-		/datum/ai_planning_subtree/find_food,
-		/datum/ai_planning_subtree/express_happiness,
-		/datum/ai_planning_subtree/use_mob_ability/turtle_tree,
-		/datum/ai_planning_subtree/find_and_hunt_target/headbutt_people, //playfully headbutt people's legs
-		/datum/ai_planning_subtree/find_and_hunt_target/sniff_flora, //mmm the aroma
-	)
-
-/datum/ai_planning_subtree/use_mob_ability/turtle_tree
-	ability_key = BB_TURTLE_TREE_ABILITY
 
 /datum/ai_planning_subtree/use_mob_ability/turtle_tree/SelectBehaviors(datum/ai_controller/controller, seconds_per_tick)
 	var/happiness_count = controller.blackboard[BB_BASIC_HAPPINESS] * 100
@@ -47,7 +37,7 @@
 	hunt_chance = 45
 
 /datum/ai_behavior/find_hunt_target/sniff_flora
-	action_cooldown = 1 MINUTES
+	time_between_perform = 1 MINUTES
 	behavior_flags = AI_BEHAVIOR_CAN_PLAN_DURING_EXECUTION
 
 /datum/ai_behavior/find_hunt_target/sniff_flora/valid_dinner(mob/living/source, obj/machinery/hydroponics/dinner, radius, datum/ai_controller/controller, seconds_per_tick)
@@ -74,7 +64,7 @@
 	hunt_chance = 45
 
 /datum/ai_behavior/find_hunt_target/human_to_headbutt
-	action_cooldown = 2 MINUTES
+	time_between_perform = 2 MINUTES
 	behavior_flags = AI_BEHAVIOR_CAN_PLAN_DURING_EXECUTION
 
 /datum/ai_behavior/find_hunt_target/human_to_headbutt/valid_dinner(mob/living/source, mob/living/carbon/human/dinner, radius, datum/ai_controller/controller, seconds_per_tick)

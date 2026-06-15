@@ -13,14 +13,14 @@
 	ai_traits = PASSIVE_AI_FLAGS
 	ai_movement = /datum/ai_movement/basic_avoidance
 	idle_behavior = /datum/idle_behavior/idle_random_walk
-	planning_subtrees = list(
+	behavior_nodes = list(
 		/datum/ai_planning_subtree/random_speech/insect,
 		/datum/ai_planning_subtree/find_and_hunt_target/roach,
 	)
 
 /// AI controller for aggressive roach
 /datum/ai_controller/basic_controller/cockroach/aggro
-	planning_subtrees = list(
+	behavior_nodes = list(
 		/datum/ai_planning_subtree/escape_captivity,
 		/datum/ai_planning_subtree/pet_planning,
 		/datum/ai_planning_subtree/random_speech/insect,
@@ -31,7 +31,7 @@
 
 /// AI controller for roach who can shoot at you
 /datum/ai_controller/basic_controller/cockroach/glockroach
-	planning_subtrees = list(
+	behavior_nodes = list(
 		/datum/ai_planning_subtree/escape_captivity,
 		/datum/ai_planning_subtree/pet_planning,
 		/datum/ai_planning_subtree/random_speech/insect,
@@ -44,11 +44,14 @@
 	ranged_attack_behavior = /datum/ai_behavior/basic_ranged_attack/glockroach
 
 /datum/ai_behavior/basic_ranged_attack/glockroach //Slightly slower, as this is being made in feature freeze ;)
-	action_cooldown = 1 SECONDS
+	time_between_perform = 1 SECONDS
+
+/datum/bt_node/ai_behavior/basic_ranged_attack/glockroach
+	time_between_perform = 1 SECONDS
 
 /// roach who shoots at you slightly slower
 /datum/ai_controller/basic_controller/cockroach/mobroach
-	planning_subtrees = list(
+	behavior_nodes = list(
 		/datum/ai_planning_subtree/escape_captivity,
 		/datum/ai_planning_subtree/pet_planning,
 		/datum/ai_planning_subtree/random_speech/insect,
@@ -61,4 +64,4 @@
 	ranged_attack_behavior = /datum/ai_behavior/basic_ranged_attack/mobroach
 
 /datum/ai_behavior/basic_ranged_attack/mobroach
-	action_cooldown = 2 SECONDS
+	time_between_perform = 2 SECONDS

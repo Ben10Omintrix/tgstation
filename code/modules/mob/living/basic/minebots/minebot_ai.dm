@@ -1,4 +1,5 @@
 /datum/ai_controller/basic_controller/minebot
+	behavior_tree_json = "minebot.bt.json"
 	blackboard = list(
 		BB_TARGETING_STRATEGY = /datum/targeting_strategy/basic,
 		BB_PET_TARGETING_STRATEGY = /datum/targeting_strategy/basic/not_friends,
@@ -20,7 +21,7 @@
 
 	ai_movement = /datum/ai_movement/basic_avoidance
 	idle_behavior = /datum/idle_behavior/idle_random_walk
-	planning_subtrees = list(
+	behavior_nodes = list(
 		/datum/ai_planning_subtree/simple_find_target,
 		/datum/ai_planning_subtree/launch_missiles,
 		/datum/ai_planning_subtree/pet_planning,
@@ -120,7 +121,7 @@
 
 /datum/ai_behavior/send_sos_message
 	behavior_flags = AI_BEHAVIOR_CAN_PLAN_DURING_EXECUTION
-	action_cooldown = 2 MINUTES
+	time_between_perform = 2 MINUTES
 
 /datum/ai_behavior/send_sos_message/perform(seconds_per_tick, datum/ai_controller/controller, target_key)
 	var/mob/living/carbon/target = controller.blackboard[target_key]
@@ -145,22 +146,22 @@
 	ranged_attack_behavior = /datum/ai_behavior/basic_ranged_attack/minebot
 
 /datum/ai_planning_subtree/basic_ranged_attack_subtree/minebot/SelectBehaviors(datum/ai_controller/controller, seconds_per_tick)
-	var/atom/target = controller.blackboard[BB_BASIC_MOB_CURRENT_TARGET]
+	var/atom/target = controller.blackboard[BB_CURRENT_TARGET]
 	if(QDELETED(target))
 		return
 	var/mob/living/living_pawn = controller.pawn
 	if(!living_pawn.combat_mode) //we are not on attack mode
 		return
-	controller.queue_behavior(ranged_attack_behavior, BB_BASIC_MOB_CURRENT_TARGET, BB_TARGETING_STRATEGY, BB_BASIC_MOB_CURRENT_TARGET_HIDING_LOCATION)
+	controller.queue_behavior(ranged_attack_behavior, BB_CURRENT_TARGET, BB_TARGETING_STRATEGY, BB_CURRENT_TARGET_HIDING_LOCATION)
 	return SUBTREE_RETURN_FINISH_PLANNING
 
 /datum/ai_planning_subtree/minebot_maintain_distance/SelectBehaviors(datum/ai_controller/controller, seconds_per_tick)
-	var/atom/target = controller.blackboard[BB_BASIC_MOB_CURRENT_TARGET]
+	var/atom/target = controller.blackboard[BB_CURRENT_TARGET]
 	if(QDELETED(target))
 		return
 	var/mob/living/living_pawn = controller.pawn
 	if(get_dist(living_pawn, target) <= controller.blackboard[BB_MINIMUM_SHOOTING_DISTANCE])
-		controller.queue_behavior(/datum/ai_behavior/run_away_from_target/run_and_shoot/minebot, BB_BASIC_MOB_CURRENT_TARGET)
+		controller.queue_behavior(/datum/ai_behavior/run_away_from_target/run_and_shoot/minebot, BB_CURRENT_TARGET)
 		return SUBTREE_RETURN_FINISH_PLANNING
 
 /datum/ai_behavior/run_away_from_target/run_and_shoot/minebot
@@ -188,6 +189,10 @@
 	if(get_dist(living_pawn, target) <= minimum_distance)
 		return AI_BEHAVIOR_DELAY | AI_BEHAVIOR_SUCCEEDED
 
+/// BT-native ranged attack for the minebot pet command. Avoids friendly fire.
+/datum/bt_node/ai_behavior/basic_ranged_attack/minebot
+	avoid_friendly_fire = TRUE
+
 ///mine walls if we are on automated mining mode
 /datum/ai_planning_subtree/minebot_mining/SelectBehaviors(datum/ai_controller/controller, seconds_per_tick)
 	if(!controller.blackboard[BB_AUTOMATED_MINING])
@@ -210,7 +215,7 @@
 /datum/ai_behavior/minebot_mine_turf
 	behavior_flags = AI_BEHAVIOR_REQUIRE_MOVEMENT | AI_BEHAVIOR_CAN_PLAN_DURING_EXECUTION
 	required_distance = 2
-	action_cooldown = 3 SECONDS
+	time_between_perform = 3 SECONDS
 
 /datum/ai_behavior/minebot_mine_turf/setup(datum/ai_controller/controller, target_key)
 	. = ..()
@@ -330,7 +335,7 @@
 	return "signals [living_pet] to dump its ore!"
 
 /datum/pet_command/attack/minebot
-	attack_behaviour = /datum/ai_behavior/basic_ranged_attack/minebot
+	attack_subtree = /datum/bt_node/subtree/pet_command/attack/minebot
 
 /datum/pet_command/attack/minebot/execute_action(datum/ai_controller/controller)
 	controller.set_blackboard_key(BB_AUTOMATED_MINING, FALSE)
@@ -350,8 +355,8 @@
 /datum/pet_command/protect_owner/minebot/set_command_target(mob/living/parent, atom/target)
 	if(!parent.ai_controller.blackboard[BB_MINEBOT_AUTO_DEFEND])
 		return FALSE
-	if(!parent.ai_controller.blackboard_key_exists(BB_BASIC_MOB_CURRENT_TARGET) && !QDELETED(target)) //we are already dealing with something,
-		parent.ai_controller.set_blackboard_key(BB_BASIC_MOB_CURRENT_TARGET, target)
+	if(!parent.ai_controller.blackboard_key_exists(BB_CURRENT_TARGET) && !QDELETED(target)) //we are already dealing with something,
+		parent.ai_controller.set_blackboard_key(BB_CURRENT_TARGET, target)
 	return TRUE
 
 /datum/pet_command/protect_owner/minebot/execute_action(datum/ai_controller/controller)

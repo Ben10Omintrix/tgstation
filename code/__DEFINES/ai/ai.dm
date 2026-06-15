@@ -1,6 +1,15 @@
 #define GET_AI_BEHAVIOR(behavior_type) SSai_behaviors.ai_behaviors[behavior_type]
 #define GET_TARGETING_STRATEGY(targeting_type) SSai_behaviors.targeting_strategies[targeting_type]
 #define GET_TARGET_PRIORITY_STRATEGY(targeting_type) SSai_behaviors.target_priority_strategies[targeting_type]
+#define GET_TARGET_SOURCE(source_type) SSai_behaviors.target_sources[source_type]
+
+// Revalidation modes for /datum/bt_node/ai_behavior/acquire_target
+/// If a target is already set, validate it via is_valid_target before searching. Replace if invalid.
+#define TARGET_REVALIDATE 1
+/// If a target is already set, return SUCCESS immediately without re-checking.
+#define TARGET_KEEP_IF_SET 2
+/// Always run the full candidate search, ignoring any existing target.
+#define TARGET_ALWAYS_SEARCH 3
 #define HAS_AI_CONTROLLER_TYPE(thing, type) istype(thing?.ai_controller, type)
 
 //AI controller flags
@@ -43,6 +52,10 @@
 
 #define AI_BEHAVIOR_INSTANT (NONE)
 
+/// Prevent reset_tick_state() from calling finish_action() when the behavior is interrupted.
+#define AI_BEHAVIOR_UNINTERRUPTIBLE (1<<5)
+
+// DEPRECATED movement flags — the BT system handles movement via dedicated move_to_target nodes.
 ///Does this task require movement from the AI before it can be performed?
 #define AI_BEHAVIOR_REQUIRE_MOVEMENT (1<<0)
 ///Does this require the current_movement_target to be adjacent and in reach?
@@ -51,7 +64,7 @@
 #define AI_BEHAVIOR_MOVE_AND_PERFORM (1<<2)
 ///Does finishing this task not null the current movement target?
 #define AI_BEHAVIOR_KEEP_MOVE_TARGET_ON_FINISH (1<<3)
-///Does this behavior NOT block planning?
+/// DEPRECATED — all BT behaviors can run concurrently; use BT_PARALLEL/BT_SEQUENCE for ordering.
 #define AI_BEHAVIOR_CAN_PLAN_DURING_EXECUTION (1<<4)
 
 ///AI flags
@@ -73,7 +86,7 @@
 
 //Base Subtree defines
 
-///This subtree should cancel any further planning, (Including from other subtrees)
+// DEPRECATED — porting to /datum/bt_node/subtree makes this return value unnecessary.
 #define SUBTREE_RETURN_FINISH_PLANNING 1
 
 //Generic subtree defines

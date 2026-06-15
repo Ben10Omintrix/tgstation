@@ -15,7 +15,7 @@
 	movement_delay = 0.25 SECONDS
 	ai_movement = /datum/ai_movement/basic_avoidance
 	idle_behavior = /datum/idle_behavior/idle_random_walk
-	planning_subtrees = list(
+	behavior_nodes = list(
 		/datum/ai_planning_subtree/escape_captivity,
 		/datum/ai_planning_subtree/simple_find_target,
 		/datum/ai_planning_subtree/attack_obstacle_in_path,
@@ -44,7 +44,7 @@
 	. = ..()
 	// do not shoot the PKA if we are not in the right range
 	var/mob/living/pawn = controller.pawn
-	var/mob/living/victim = controller.blackboard[BB_BASIC_MOB_CURRENT_TARGET]
+	var/mob/living/victim = controller.blackboard[BB_CURRENT_TARGET]
 	if(get_dist(pawn, victim) >= pka_range)
 		return FALSE
 	return TRUE
@@ -57,7 +57,7 @@
 	. = ..()
 	// only dash attack if we are out of PKA range
 	var/mob/living/pawn = controller.pawn
-	var/mob/living/victim = controller.blackboard[BB_BASIC_MOB_CURRENT_TARGET]
+	var/mob/living/victim = controller.blackboard[BB_CURRENT_TARGET]
 	if(get_dist(pawn, victim) < pka_range)
 		return FALSE
 	return TRUE

@@ -9,7 +9,7 @@
 	ai_traits = PASSIVE_AI_FLAGS
 	ai_movement = /datum/ai_movement/basic_avoidance
 	idle_behavior = /datum/idle_behavior/idle_random_walk
-	planning_subtrees = list(
+	behavior_nodes = list(
 		/datum/ai_planning_subtree/pet_planning,
 		/datum/ai_planning_subtree/find_food/mothroach,
 		/datum/ai_planning_subtree/target_retaliate/to_flee,
@@ -21,10 +21,5 @@
 	finding_behavior = /datum/ai_behavior/find_and_set/in_list/mothroach_food
 
 /datum/ai_behavior/find_and_set/in_list/mothroach_food
-
-/datum/ai_behavior/find_and_set/in_list/mothroach_food/search_tactic(datum/ai_controller/controller, locate_paths, search_range = SEARCH_TACTIC_DEFAULT_RANGE)
-	var/list/found = typecache_filter_list(oview(search_range, controller.pawn), locate_paths)
-	var/mob/living/living_pawn = controller.pawn
-	found -= living_pawn.loc
-	if(length(found))
-		return pick(found)
+	parent_type = /datum/bt_node/ai_behavior/find_and_set/in_list
+	exclude_loc = TRUE

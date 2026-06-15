@@ -119,7 +119,7 @@
 
 	ai_movement = /datum/ai_movement/basic_avoidance
 	idle_behavior = /datum/idle_behavior/idle_random_walk
-	planning_subtrees = list(
+	behavior_nodes = list(
 		/datum/ai_planning_subtree/escape_captivity,
 		/datum/ai_planning_subtree/target_retaliate/check_faction,
 		/datum/ai_planning_subtree/simple_find_wounded_target,
@@ -133,7 +133,7 @@
 	ranged_attack_behavior = /datum/ai_behavior/basic_ranged_attack/netguardian
 
 /datum/ai_behavior/basic_ranged_attack/netguardian
-	action_cooldown = 1 SECONDS
+	time_between_perform = 1 SECONDS
 	avoid_friendly_fire = TRUE
 
 /datum/ai_planning_subtree/targeted_mob_ability/fire_rockets

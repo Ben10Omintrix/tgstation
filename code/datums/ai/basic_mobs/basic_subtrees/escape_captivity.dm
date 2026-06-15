@@ -35,7 +35,7 @@
 		var/datum/targeting_strategy/targeting_strategy = GET_TARGETING_STRATEGY(controller.blackboard[targeting_strategy_key])
 		var/friends_list = controller.blackboard[BB_FRIENDS_LIST] || list()
 		// Only resist grabs from mobs that aren't in our faction
-		if (targeting_strategy?.can_attack(living_pawn, puller) && !(puller in friends_list))
+		if (targeting_strategy?.is_valid_target(living_pawn, puller) && !(puller in friends_list))
 			controller.queue_behavior(/datum/ai_behavior/resist)
 			return SUBTREE_RETURN_FINISH_PLANNING
 
@@ -43,28 +43,14 @@
 		controller.queue_behavior(/datum/ai_behavior/resist)
 		return SUBTREE_RETURN_FINISH_PLANNING
 
-/// Keep attacking an object while it is our loc or while we are buckled to it
-/datum/ai_behavior/break_out_of_object
-	action_cooldown = 0.2 SECONDS
-
-/datum/ai_behavior/break_out_of_object/setup(datum/ai_controller/controller, atom/target)
-	if (!should_attack_target(controller, target))
-		return FALSE
-	return TRUE
-
-/datum/ai_behavior/break_out_of_object/perform(seconds_per_tick, datum/ai_controller/controller, atom/target_atom)
-	if (!should_attack_target(controller, target_atom))
-		return AI_BEHAVIOR_INSTANT | AI_BEHAVIOR_FAILED
-	controller.ai_interact(target = target_atom, combat_mode = TRUE)
-	return AI_BEHAVIOR_DELAY
-
-/datum/ai_behavior/break_out_of_object/proc/should_attack_target(datum/ai_controller/controller, atom/target)
-	if (QDELETED(target))
-		return FALSE
-	var/mob/living/pawn = controller.pawn
-	if (!target.IsReachableBy(pawn))
-		return FALSE
-	return pawn.loc == target || pawn.buckled == target
-
 /datum/ai_planning_subtree/escape_captivity/pacifist
 	pacifist = TRUE
+
+
+///Tries to escape activity, has observers to cancel if needed
+/datum/bt_node/subtree/escape_captivity
+	behavior_tree_json = "code/datums/ai/basic_mobs/basic_subtrees/escape_captivity.bt.json"
+
+/// Pacifist variant: never attacks objects, only resists.
+/datum/bt_node/subtree/escape_captivity/pacifist
+	behavior_tree_json = "code/datums/ai/basic_mobs/basic_subtrees/escape_captivity_pacifist.bt.json"

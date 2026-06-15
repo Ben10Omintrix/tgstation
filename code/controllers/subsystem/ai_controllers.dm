@@ -6,7 +6,7 @@ SUBSYSTEM_DEF(ai_controllers)
 	dependencies = list(
 		/datum/controller/subsystem/movement/ai_movement,
 	)
-	wait = 0.5 SECONDS //Plan every half second if required, not great not terrible.
+	wait = 0.1 SECONDS //Plan every 1/10th second if required. In theory your AI should not be planning this much, but its useful because we want planning to be responsive when a previous plan ends.
 	runlevels = RUNLEVEL_GAME | RUNLEVEL_POSTGAME
 	var/list/currentrun = list()
 	///type of status we are interested in running
@@ -16,8 +16,9 @@ SUBSYSTEM_DEF(ai_controllers)
 	/// The tick cost of all currently processed AI, being summed together
 	var/summing_cost
 
+
+
 /datum/controller/subsystem/ai_controllers/Initialize()
-	setup_subtrees()
 	return SS_INIT_SUCCESS
 
 /datum/controller/subsystem/ai_controllers/stat_entry(msg)
@@ -37,12 +38,7 @@ SUBSYSTEM_DEF(ai_controllers)
 	while(length(current_run))
 		var/datum/ai_controller/ai_controller = current_run[length(current_run)]
 		current_run.len--
-		if(!ai_controller.able_to_plan)
-			continue
 		ai_controller.SelectBehaviors(wait * 0.1)
-
-		if(!length(ai_controller.current_behaviors)) //Still no plan
-			ai_controller.planning_failed()
 
 		if(MC_TICK_CHECK)
 			break
@@ -52,14 +48,6 @@ SUBSYSTEM_DEF(ai_controllers)
 		return
 
 	our_cost = MC_AVERAGE(our_cost, summing_cost)
-
-///Creates all instances of ai_subtrees and assigns them to the ai_subtrees list.
-/datum/controller/subsystem/ai_controllers/proc/setup_subtrees()
-	if(length(GLOB.ai_subtrees))
-		return
-	for(var/subtree_type in subtypesof(/datum/ai_planning_subtree))
-		var/datum/ai_planning_subtree/subtree = new subtree_type
-		GLOB.ai_subtrees[subtree_type] = subtree
 
 ///Called when the max Z level was changed, updating our coverage.
 /datum/controller/subsystem/ai_controllers/proc/on_max_z_changed()

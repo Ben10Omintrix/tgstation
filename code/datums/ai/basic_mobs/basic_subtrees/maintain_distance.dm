@@ -1,7 +1,7 @@
 /// Step away if too close, or towards if too far
 /datum/ai_planning_subtree/maintain_distance
 	/// Blackboard key holding atom we want to stay away from
-	var/target_key = BB_BASIC_MOB_CURRENT_TARGET
+	var/target_key = BB_CURRENT_TARGET
 	/// How far do we look for our target?
 	var/view_distance = 10
 	/// the run away behavior we will use
@@ -36,7 +36,7 @@
 /datum/ai_behavior/step_away
 	behavior_flags = AI_BEHAVIOR_REQUIRE_MOVEMENT | AI_BEHAVIOR_CAN_PLAN_DURING_EXECUTION
 	required_distance = 0
-	action_cooldown = 0.2 SECONDS
+	time_between_perform = 0.2 SECONDS
 
 /datum/ai_behavior/step_away/setup(datum/ai_controller/controller, target_key)
 	. = ..()
@@ -49,7 +49,7 @@
 
 	var/turf/next_step = get_step_away(controller.pawn, current_target)
 	if (!isnull(next_step) && !next_step.is_blocked_turf(exclude_mobs = TRUE))
-		set_movement_target(controller, target = next_step, new_movement = /datum/ai_movement/basic_avoidance/backstep)
+		set_movement_target(controller, target = next_step, movement_type = /datum/ai_movement/basic_avoidance/backstep)
 		return TRUE
 
 	var/list/all_dirs = GLOB.alldirs.Copy()
@@ -60,7 +60,7 @@
 	for (var/dir in all_dirs)
 		next_step = get_step(controller.pawn, dir)
 		if (!isnull(next_step) && !next_step.is_blocked_turf(exclude_mobs = TRUE))
-			set_movement_target(controller, target = next_step, new_movement = /datum/ai_movement/basic_avoidance/backstep)
+			set_movement_target(controller, target = next_step, movement_type = /datum/ai_movement/basic_avoidance/backstep)
 			return TRUE
 	return FALSE
 
@@ -94,7 +94,7 @@
 /datum/ai_behavior/cover_minimum_distance
 	behavior_flags = AI_BEHAVIOR_REQUIRE_MOVEMENT | AI_BEHAVIOR_CAN_PLAN_DURING_EXECUTION
 	required_distance = 0
-	action_cooldown = 0.2 SECONDS
+	time_between_perform = 0.2 SECONDS
 
 /datum/ai_behavior/cover_minimum_distance/setup(datum/ai_controller/controller, target_key, minimum_distance)
 	. = ..()

@@ -4,9 +4,9 @@
 	/// Blackboard key which tells us how to select valid targets
 	var/targeting_strategy_key = BB_TARGETING_STRATEGY
 	/// Blackboard key in which to store selected target
-	var/target_key = BB_BASIC_MOB_CURRENT_TARGET
+	var/target_key = BB_CURRENT_TARGET
 	/// Blackboard key in which to store selected target's hiding place
-	var/hiding_place_key = BB_BASIC_MOB_CURRENT_TARGET_HIDING_LOCATION
+	var/hiding_place_key = BB_CURRENT_TARGET_HIDING_LOCATION
 	/// do we check for faction?
 	var/check_faction = FALSE
 	/// Behavior to use to select our target
@@ -31,11 +31,11 @@
  * You will probably need /datum/element/ai_retaliate to take advantage of this unless you're populating the blackboard yourself
  */
 /datum/ai_behavior/target_from_retaliate_list
-	action_cooldown = 2 SECONDS
+	time_between_perform = 2 SECONDS
 	/// How far can we see stuff?
 	var/vision_range = 9
 
-/datum/ai_behavior/target_from_retaliate_list/perform(seconds_per_tick, datum/ai_controller/controller, shitlist_key, target_key, targeting_strategy_key, hiding_location_key, check_faction)
+/datum/ai_behavior/target_from_retaliate_list/perform(seconds_per_tick, datum/ai_controller/controller, shitlist_key, target_key = BB_CURRENT_TARGET, targeting_strategy_key = BB_TARGETING_STRATEGY, hiding_location_key = BB_CURRENT_TARGET_HIDING_LOCATION, check_faction)
 	var/mob/living/living_mob = controller.pawn
 	var/datum/targeting_strategy/targeting_strategy = GET_TARGETING_STRATEGY(controller.blackboard[targeting_strategy_key])
 	if(!targeting_strategy)
@@ -54,12 +54,12 @@
 	if (!check_faction)
 		controller.set_blackboard_key(BB_TEMPORARILY_IGNORE_FACTION, TRUE)
 
-	if (!QDELETED(existing_target) && targeting_strategy.can_attack(living_mob, existing_target, vision_range))
+	if (!QDELETED(existing_target) && targeting_strategy.is_valid_target(living_mob, existing_target, vision_range))
 		return AI_BEHAVIOR_DELAY | AI_BEHAVIOR_SUCCEEDED
 
 	var/list/enemies_list = list()
 	for(var/mob/living/potential_target as anything in shitlist)
-		if(!targeting_strategy.can_attack(living_mob, potential_target, vision_range))
+		if(!targeting_strategy.is_valid_target(living_mob, potential_target, vision_range))
 			continue
 		// Strict comparasion because priority strategies might not care about retaliation, so this makes existing targets not override potential retaliates
 		if (priority_strategy && priority_strategy.get_target_priority(controller, potential_target) < existing_priority)
@@ -92,3 +92,61 @@
 		return
 	var/usually_ignores_faction = controller.blackboard[BB_ALWAYS_IGNORE_FACTION] || FALSE
 	controller.set_blackboard_key(BB_TEMPORARILY_IGNORE_FACTION, usually_ignores_faction)
+
+///Pick a target from our retaliate list
+/datum/bt_node/ai_behavior/acquire_target/target_from_retaliate_list
+	target_source = /datum/target_source/from_bb_list/retaliate_list
+	revalidation_mode = TARGET_REVALIDATE
+	time_between_perform = 2 SECONDS
+	vision_range = 9
+	/// Blackboard key in which to store the target's hiding location.
+	var/hiding_location_key
+	/// If FALSE, temporarily ignores faction during the search.
+	var/check_faction = FALSE
+
+/datum/bt_node/ai_behavior/acquire_target/target_from_retaliate_list/perform(seconds_per_tick, datum/ai_controller/controller)
+	if(!check_faction)
+		controller.set_blackboard_key(BB_TEMPORARILY_IGNORE_FACTION, TRUE)
+	return ..()
+
+/datum/bt_node/ai_behavior/acquire_target/target_from_retaliate_list/filter_candidates(datum/ai_controller/controller, list/candidates, datum/targeting_strategy/strategy, atom/current_target)
+	var/mob/living/pawn = controller.pawn
+	var/datum/target_priority_strategy/priority_strategy = GET_TARGET_PRIORITY_STRATEGY(controller.blackboard[BB_TARGET_PRIORITY_STRATEGY])
+	var/current_priority = priority_strategy ? priority_strategy.get_target_priority(controller, current_target) : 0
+	var/list/filtered = list()
+	for(var/atom/candidate as anything in candidates)
+		if(!strategy.is_valid_target(pawn, candidate, vision_range, controller))
+			continue
+		if(priority_strategy && priority_strategy.get_target_priority(controller, candidate) < current_priority)
+			continue
+		filtered += candidate
+	return filtered
+
+/datum/bt_node/ai_behavior/acquire_target/target_from_retaliate_list/on_target_found(datum/ai_controller/controller, atom/target, datum/targeting_strategy/strategy)
+	var/atom/hiding = strategy.find_hidden_mobs(controller.pawn, target)
+	if(hiding)
+		controller.set_blackboard_key(hiding_location_key, hiding)
+
+/datum/bt_node/ai_behavior/acquire_target/target_from_retaliate_list/on_no_valid_candidates(datum/ai_controller/controller, atom/current_target)
+	if(current_target)
+		controller.clear_blackboard_key(target_key)
+
+/datum/bt_node/ai_behavior/acquire_target/target_from_retaliate_list/pick_final_target(datum/ai_controller/controller, list/filtered_targets)
+	var/datum/target_priority_strategy/priority_strategy = GET_TARGET_PRIORITY_STRATEGY(controller.blackboard[BB_TARGET_PRIORITY_STRATEGY])
+	if(!priority_strategy)
+		return pick(filtered_targets)
+	return priority_strategy.select_target(controller, filtered_targets)
+
+/datum/bt_node/ai_behavior/acquire_target/target_from_retaliate_list/finish_action(datum/ai_controller/controller, succeeded)
+	. = ..()
+	if(succeeded || check_faction)
+		return
+	var/usually_ignores_faction = controller.blackboard[BB_ALWAYS_IGNORE_FACTION] || FALSE
+	controller.set_blackboard_key(BB_TEMPORARILY_IGNORE_FACTION, usually_ignores_faction)
+
+/// Nearest-attacker variant
+/datum/bt_node/ai_behavior/acquire_target/target_from_retaliate_list/nearest
+
+/datum/bt_node/ai_behavior/acquire_target/target_from_retaliate_list/nearest/pick_final_target(datum/ai_controller/controller, list/filtered_targets)
+	var/turf/our_position = get_turf(controller.pawn)
+	return get_closest_atom(/atom/, filtered_targets, our_position)

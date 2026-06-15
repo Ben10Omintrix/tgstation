@@ -1,0 +1,64 @@
+/// Gates child on pawn being emagged. Use invert = TRUE for the opposite. Checked each tick.
+/datum/bt_node/decorator/bot_is_emagged
+
+/datum/bt_node/decorator/bot_is_emagged/check_condition(datum/ai_controller/controller)
+	var/mob/living/basic/bot/bot_pawn = controller.pawn
+	return !!(bot_pawn.bot_access_flags & BOT_COVER_EMAGGED)
+
+/// Gates child on pawn having the specified bot_mode_flag. Observes COMSIG_BOT_MODE_FLAGS_SET.
+/datum/bt_node/decorator/bot_mode_flag
+	var/flag
+
+/datum/bt_node/decorator/bot_mode_flag/register_observe_signals(atom/pawn)
+	RegisterSignal(pawn, COMSIG_BOT_MODE_FLAGS_SET, PROC_REF(on_signal_changed))
+	return TRUE
+
+/datum/bt_node/decorator/bot_mode_flag/unregister_observe_signals(atom/pawn)
+	UnregisterSignal(pawn, COMSIG_BOT_MODE_FLAGS_SET)
+
+/datum/bt_node/decorator/bot_mode_flag/check_condition(datum/ai_controller/controller)
+	var/mob/living/basic/bot/bot_pawn = controller.pawn
+	return !!(bot_pawn.bot_mode_flags & flag)
+
+/// Gates child on the pawn's current mode matching `mode` (e.g. BOT_DELIVER). Use invert = TRUE for the opposite. Checked each tick.
+/datum/bt_node/decorator/bot_mode
+	var/mode
+
+/datum/bt_node/decorator/bot_mode/check_condition(datum/ai_controller/controller)
+	var/mob/living/basic/bot/bot_pawn = controller.pawn
+	return bot_pawn.mode == mode
+
+/// Gates child on the pawn's `wire` being cut. Use invert = TRUE to gate on the wire being intact. Checked each tick.
+/datum/bt_node/decorator/bot_wire_cut
+	var/wire
+
+/datum/bt_node/decorator/bot_wire_cut/check_condition(datum/ai_controller/controller)
+	var/mob/living/basic/bot/bot_pawn = controller.pawn
+	return !!(bot_pawn.wires?.is_cut(wire))
+
+/// Gates child when pawn has the specified medical mode flag. Use invert = TRUE for the opposite. Checked each tick.
+/datum/bt_node/decorator/bot_medical_flag
+	var/flag
+
+/datum/bt_node/decorator/bot_medical_flag/check_condition(datum/ai_controller/controller)
+	var/mob/living/basic/bot/medbot/bot_pawn = controller.pawn
+	return !!(bot_pawn.medical_mode_flags & flag)
+
+/**
+ * Validates the secbot's current target. Clears BB_CURRENT_TARGET and returns BT_FAILURE
+ * if the target is handcuffed, deleted, or paralyzed without handcuff mode. Otherwise ticks child.
+ */
+/datum/bt_node/decorator/secbot_target_valid
+
+/datum/bt_node/decorator/secbot_target_valid/check_condition(datum/ai_controller/controller)
+	var/mob/living/carbon/my_target = controller.blackboard[BB_CURRENT_TARGET]
+	if(QDELETED(my_target) || !istype(my_target) || my_target.handcuffed)
+		EVLOG_TEXT(controller, EVLOG_CATEGORY_AI_DECISIONMAKING, "[controller.pawn] secbot_target_valid: clearing target [my_target] (deleted=[QDELETED(my_target)], handcuffed=[my_target?.handcuffed])")
+		controller.clear_blackboard_key(BB_CURRENT_TARGET)
+		return FALSE
+	var/mob/living/basic/bot/secbot/my_bot = controller.pawn
+	if(my_target.IsParalyzed() && !(my_bot.security_mode_flags & SECBOT_HANDCUFF_TARGET))
+		EVLOG_TEXT(controller, EVLOG_CATEGORY_AI_DECISIONMAKING, "[controller.pawn] secbot_target_valid: clearing [my_target] (paralyzed, no handcuff mode)")
+		controller.clear_blackboard_key(BB_CURRENT_TARGET)
+		return FALSE
+	return TRUE

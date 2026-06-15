@@ -36,8 +36,8 @@
 	controller.set_blackboard_key(BB_BASIC_MOB_PREVIOUS_MELEE_COOLDOWN, current_cooldown)
 	basic_pawn.melee_attack_cooldown = new_attack_cooldown
 
-	if(controller.blackboard_key_exists(BB_BASIC_MOB_CURRENT_TARGET))
-		var/current_target = controller.blackboard[BB_BASIC_MOB_CURRENT_TARGET]
+	if(controller.blackboard_key_exists(BB_CURRENT_TARGET))
+		var/current_target = controller.blackboard[BB_CURRENT_TARGET]
 		controller.pawn.visible_message(span_danger("\The [controller.pawn] gets an enraged look at [current_target]!"))
 	else
 		controller.pawn.visible_message(span_danger("\The [controller.pawn] gets an enraged look!"))

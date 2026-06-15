@@ -157,7 +157,7 @@
 	ai_traits = PASSIVE_AI_FLAGS
 	ai_movement = /datum/ai_movement/basic_avoidance
 	idle_behavior = null
-	planning_subtrees = list(
+	behavior_nodes = list(
 		// Priority is see if lavaland mobs are attacking us to flee from them.
 		/datum/ai_planning_subtree/find_nearest_thing_which_attacked_me_to_flee,
 		// Fly you fool
@@ -181,7 +181,7 @@
 	flee_behaviour = /datum/ai_behavior/run_away_from_target/drone
 
 /datum/ai_behavior/run_away_from_target/drone
-	action_cooldown = 1 SECONDS
+	time_between_perform = 1 SECONDS
 	run_distance = 3
 
 

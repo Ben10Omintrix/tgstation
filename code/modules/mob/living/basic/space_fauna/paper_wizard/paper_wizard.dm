@@ -58,7 +58,7 @@
 
 	ai_movement = /datum/ai_movement/basic_avoidance
 	idle_behavior = /datum/idle_behavior/idle_random_walk/less_walking
-	planning_subtrees = list(
+	behavior_nodes = list(
 		/datum/ai_planning_subtree/escape_captivity,
 		/datum/ai_planning_subtree/simple_find_target,
 		/datum/ai_planning_subtree/targeted_mob_ability/wizard_mimic,
@@ -73,7 +73,7 @@
 	attack_behaviour = /datum/ai_behavior/attack_obstructions/paper_wizard
 
 /datum/ai_behavior/attack_obstructions/paper_wizard
-	action_cooldown = 0.4 SECONDS
+	time_between_perform = 0.4 SECONDS
 	can_attack_turfs = TRUE
 	can_attack_dense_objects = TRUE
 
@@ -86,7 +86,7 @@
 	finish_planning = FALSE
 
 /datum/ai_behavior/find_and_set/empty_paper
-	action_cooldown = 10 SECONDS
+	time_between_perform = 10 SECONDS
 
 /datum/ai_behavior/find_and_set/empty_paper/search_tactic(datum/ai_controller/controller, locate_path, search_range = SEARCH_TACTIC_DEFAULT_RANGE)
 	var/list/empty_papers = list()

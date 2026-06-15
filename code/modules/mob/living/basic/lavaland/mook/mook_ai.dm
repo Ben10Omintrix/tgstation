@@ -5,6 +5,7 @@ GLOBAL_LIST_INIT(mook_commands, list(
 ))
 
 /datum/ai_controller/basic_controller/mook
+	behavior_tree_json = "mook.bt.json"
 	blackboard = list(
 		BB_TARGETING_STRATEGY = /datum/targeting_strategy/basic/mook,
 		BB_BLACKLIST_MINERAL_TURFS = list(/turf/closed/mineral/gibtonite, /turf/closed/mineral/strong),
@@ -13,21 +14,8 @@ GLOBAL_LIST_INIT(mook_commands, list(
 	)
 
 	ai_movement = /datum/ai_movement/basic_avoidance
-	idle_behavior = /datum/idle_behavior/idle_random_walk
-	planning_subtrees = list(
-		/datum/ai_planning_subtree/escape_captivity,
-		/datum/ai_planning_subtree/target_retaliate,
-		/datum/ai_planning_subtree/simple_find_target,
-		/datum/ai_planning_subtree/look_for_village,
-		/datum/ai_planning_subtree/targeted_mob_ability/leap,
-		/datum/ai_planning_subtree/basic_melee_attack_subtree,
-		/datum/ai_planning_subtree/find_and_hunt_target/material_stand,
-		/datum/ai_planning_subtree/use_mob_ability/mook_jump,
-		/datum/ai_planning_subtree/find_and_hunt_target/hunt_ores/mook,
-		/datum/ai_planning_subtree/mine_walls/mook,
-		/datum/ai_planning_subtree/wander_away_from_village,
-	)
 	can_idle = FALSE // these guys are intended to operate even if nobody's around
+	can_run_without_clients_on_zlevel = TRUE
 
 ///check for faction if not a ash walker, otherwise just attack
 /datum/targeting_strategy/basic/mook/faction_check(datum/ai_controller/controller, mob/living/living_mob, mob/living/the_target)
@@ -211,22 +199,12 @@ GLOBAL_LIST_INIT(mook_commands, list(
 
 ///bard mook plays nice music for the village
 /datum/ai_controller/basic_controller/mook/bard
+	behavior_tree_json = "bard.bt.json"
 	blackboard = list(
 		BB_TARGETING_STRATEGY = /datum/targeting_strategy/basic/mook,
 		BB_MAXIMUM_DISTANCE_TO_VILLAGE = 10,
 		BB_STORM_APPROACHING = FALSE,
 		BB_SONG_LINES = MOOK_SONG,
-	)
-	idle_behavior = /datum/idle_behavior/walk_near_target/mook_village
-	planning_subtrees = list(
-		/datum/ai_planning_subtree/escape_captivity,
-		/datum/ai_planning_subtree/target_retaliate,
-		/datum/ai_planning_subtree/look_for_village,
-		/datum/ai_planning_subtree/simple_find_target,
-		/datum/ai_planning_subtree/basic_melee_attack_subtree,
-		/datum/ai_planning_subtree/play_music_for_visitor,
-		/datum/ai_planning_subtree/use_mob_ability/mook_jump,
-		/datum/ai_planning_subtree/generic_play_instrument,
 	)
 
 
@@ -264,23 +242,12 @@ GLOBAL_LIST_INIT(mook_commands, list(
 
 ///healer mooks guard the village from intruders and heal the miner mooks when they come home
 /datum/ai_controller/basic_controller/mook/support
+	behavior_tree_json = "support.bt.json"
 	blackboard = list(
 		BB_TARGETING_STRATEGY = /datum/targeting_strategy/basic/mook,
 		BB_MAXIMUM_DISTANCE_TO_VILLAGE = 10,
 		BB_STORM_APPROACHING = FALSE,
 		BB_PET_TARGETING_STRATEGY = /datum/targeting_strategy/basic/not_friends,
-	)
-	idle_behavior = /datum/idle_behavior/walk_near_target/mook_village
-	planning_subtrees = list(
-		/datum/ai_planning_subtree/escape_captivity,
-		/datum/ai_planning_subtree/target_retaliate,
-		/datum/ai_planning_subtree/look_for_village,
-		/datum/ai_planning_subtree/acknowledge_chief,
-		/datum/ai_planning_subtree/pet_planning,
-		/datum/ai_planning_subtree/simple_find_target,
-		/datum/ai_planning_subtree/use_mob_ability/mook_jump,
-		/datum/ai_planning_subtree/basic_melee_attack_subtree,
-		/datum/ai_planning_subtree/find_and_hunt_target/injured_mooks,
 	)
 
 ///tree to find and register our leader
@@ -323,24 +290,15 @@ GLOBAL_LIST_INIT(mook_commands, list(
 
 ///the chief would rather command his mooks to attack people than attack them himself
 /datum/ai_controller/basic_controller/mook/tribal_chief
+	behavior_tree_json = "tribal_chief.bt.json"
 	blackboard = list(
 		BB_TARGETING_STRATEGY = /datum/targeting_strategy/basic/mook,
 		BB_STORM_APPROACHING = FALSE,
 	)
-	idle_behavior = /datum/idle_behavior/walk_near_target/mook_village
-	planning_subtrees = list(
-		/datum/ai_planning_subtree/escape_captivity,
-		/datum/ai_planning_subtree/target_retaliate,
-		/datum/ai_planning_subtree/look_for_village,
-		/datum/ai_planning_subtree/simple_find_target,
-		/datum/ai_planning_subtree/targeted_mob_ability/leap,
-		/datum/ai_planning_subtree/issue_commands,
-		/datum/ai_planning_subtree/basic_melee_attack_subtree,
-		/datum/ai_planning_subtree/find_and_hunt_target/material_stand,
-		/datum/ai_planning_subtree/use_mob_ability/mook_jump,
-		/datum/ai_planning_subtree/find_and_hunt_target/bonfire,
-		/datum/ai_planning_subtree/find_and_hunt_target/hunt_ores/tribal_chief,
-	)
+
+/datum/ai_controller/basic_controller/mook/tribal_chief/New(atom/new_pawn)
+	. = ..()
+	set_blackboard_key(BB_MOOK_COMMANDS, GLOB.mook_commands)
 
 /datum/ai_planning_subtree/issue_commands
 	///how far we look for a mook to command
@@ -349,8 +307,8 @@ GLOBAL_LIST_INIT(mook_commands, list(
 /datum/ai_planning_subtree/issue_commands/SelectBehaviors(datum/ai_controller/controller, seconds_per_tick)
 	if(!locate(/mob/living/basic/mining/mook) in oview(command_distance, controller.pawn))
 		return
-	if(controller.blackboard_key_exists(BB_BASIC_MOB_CURRENT_TARGET))
-		controller.queue_behavior(/datum/ai_behavior/issue_commands, BB_BASIC_MOB_CURRENT_TARGET, /datum/pet_command/attack)
+	if(controller.blackboard_key_exists(BB_CURRENT_TARGET))
+		controller.queue_behavior(/datum/ai_behavior/issue_commands, BB_CURRENT_TARGET, /datum/pet_command/attack)
 		return
 
 	var/atom/ore_target = controller.blackboard[BB_ORE_TARGET]
@@ -363,7 +321,7 @@ GLOBAL_LIST_INIT(mook_commands, list(
 	controller.queue_behavior(/datum/ai_behavior/issue_commands, BB_ORE_TARGET, /datum/pet_command/fetch)
 
 /datum/ai_behavior/issue_commands
-	action_cooldown = 5 SECONDS
+	time_between_perform = 5 SECONDS
 
 /datum/ai_behavior/issue_commands/perform(seconds_per_tick, datum/ai_controller/controller, target_key, command_path)
 	var/mob/living/basic/living_pawn = controller.pawn

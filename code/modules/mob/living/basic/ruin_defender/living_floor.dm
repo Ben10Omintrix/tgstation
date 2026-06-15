@@ -1,5 +1,5 @@
 /datum/ai_planning_subtree/basic_melee_attack_subtree/opportunistic/on_top/SelectBehaviors(datum/ai_controller/controller, delta_time)
-	var/mob/target = controller.blackboard[BB_BASIC_MOB_CURRENT_TARGET]
+	var/mob/target = controller.blackboard[BB_CURRENT_TARGET]
 	if(!target || QDELETED(target))
 		return
 	if(target.loc != controller.pawn.loc)
@@ -13,7 +13,7 @@
 		BB_TARGET_MINIMUM_STAT = HARD_CRIT,
 	)
 
-	planning_subtrees = list(
+	behavior_nodes = list(
 		/datum/ai_planning_subtree/simple_find_target,
 		/datum/ai_planning_subtree/basic_melee_attack_subtree/opportunistic/on_top
 	)
@@ -63,7 +63,7 @@
 		return
 	if(victim.loc == loc) //guaranteed bite
 		var/datum/targeting_strategy/basic/targeting = GET_TARGETING_STRATEGY(ai_controller.blackboard[BB_TARGETING_STRATEGY])
-		if(targeting.can_attack(src, victim))
+		if(targeting.is_valid_target(src, victim))
 			melee_attack(victim)
 	icon_state = icon_aggro
 	desc = desc_aggro

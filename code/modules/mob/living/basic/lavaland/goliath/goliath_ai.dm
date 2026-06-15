@@ -10,7 +10,7 @@
 
 	ai_movement = /datum/ai_movement/basic_avoidance
 	idle_behavior = /datum/idle_behavior/idle_random_walk
-	planning_subtrees = list(
+	behavior_nodes = list(
 		/datum/ai_planning_subtree/escape_captivity,
 		/datum/ai_planning_subtree/call_reinforcements/mining,
 		/datum/ai_planning_subtree/target_retaliate/check_faction,
@@ -30,7 +30,7 @@
 /// Go for the tentacles if they're available
 /datum/ai_behavior/basic_melee_attack/goliath
 
-/datum/ai_behavior/basic_melee_attack/goliath/perform(seconds_per_tick, datum/ai_controller/controller, target_key, targeting_strategy_key, hiding_location_key, health_ratio_key)
+/datum/ai_behavior/basic_melee_attack/goliath/perform(seconds_per_tick, datum/ai_controller/controller, target_key, targeting_strategy, hiding_location_key, health_ratio_key)
 	var/time_on_target = controller.blackboard[BB_BASIC_MOB_HAS_TARGET_TIME] || 0
 	if (time_on_target < MIN_TIME_TO_TENTACLE)
 		return ..()
@@ -62,7 +62,7 @@
 	controller.queue_behavior(/datum/ai_behavior/goliath_find_diggable_turf)
 
 /datum/ai_behavior/goliath_find_diggable_turf
-	action_cooldown = 2 SECONDS
+	time_between_perform = 2 SECONDS
 	/// Where do we store the target data
 	var/target_key = BB_GOLIATH_HOLE_TARGET
 	/// How far do we look for turfs?
@@ -101,7 +101,7 @@
 
 /// If we got nothing better to do, dig a little hole
 /datum/ai_behavior/goliath_dig
-	action_cooldown = 3 MINUTES
+	time_between_perform = 3 MINUTES
 	behavior_flags = AI_BEHAVIOR_REQUIRE_MOVEMENT | AI_BEHAVIOR_CAN_PLAN_DURING_EXECUTION
 
 /datum/ai_behavior/goliath_dig/setup(datum/ai_controller/controller, target_key)

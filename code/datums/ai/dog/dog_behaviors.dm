@@ -5,7 +5,7 @@
  */
 /datum/ai_behavior/basic_melee_attack/dog
 	behavior_flags = AI_BEHAVIOR_REQUIRE_MOVEMENT | AI_BEHAVIOR_MOVE_AND_PERFORM
-	required_distance = 3
+	var/required_distance = 3
 
 /datum/ai_behavior/basic_melee_attack/dog/perform(seconds_per_tick, datum/ai_controller/controller, target_key, targeting_strategy_key, hiding_location_key)
 	controller.behavior_cooldowns[src] = world.time + get_cooldown(controller)
@@ -16,7 +16,7 @@
 	// Unfortunately going to repeat this check in parent call but what can you do
 	var/atom/target = controller.blackboard[target_key]
 	var/datum/targeting_strategy/targeting_strategy = GET_TARGETING_STRATEGY(controller.blackboard[targeting_strategy_key])
-	if (!targeting_strategy.can_attack(living_pawn, target))
+	if (!targeting_strategy.is_valid_target(living_pawn, target))
 		return AI_BEHAVIOR_INSTANT | AI_BEHAVIOR_FAILED
 
 	if (!living_pawn.Adjacent(target))

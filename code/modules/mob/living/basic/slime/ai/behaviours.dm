@@ -25,7 +25,7 @@
 	return AI_BEHAVIOR_DELAY | AI_BEHAVIOR_SUCCEEDED
 
 /datum/ai_behavior/find_hunt_target/find_slime_food
-	action_cooldown = 7.5 SECONDS
+	time_between_perform = 7.5 SECONDS
 
 // Check if the slime can drain the target
 /datum/ai_behavior/find_hunt_target/find_slime_food/valid_dinner(mob/living/basic/slime/hunter, mob/living/dinner, radius, datum/ai_controller/controller, seconds_per_tick)
@@ -41,7 +41,7 @@
 		return FALSE
 
 	//If we are retaliating on someone edible, lets eat them instead
-	if(dinner == controller.blackboard[BB_BASIC_MOB_CURRENT_TARGET])
+	if(dinner == controller.blackboard[BB_CURRENT_TARGET])
 		return can_see(hunter, dinner, radius)
 
 	//We are so hungry, lets eat them
@@ -54,6 +54,7 @@
 
 	//We are not THAT hungry
 	return FALSE
+
 
 /datum/ai_behavior/hunt_target/interact_with_target/slime
 
@@ -78,3 +79,27 @@
 	var/atom/target = controller.blackboard[hunting_target_key]
 	if(!slime_pawn.can_feed_on(target))
 		controller.clear_blackboard_key(hunting_target_key)
+
+/datum/bt_node/ai_behavior/hunt_target/interact_with_target/slime
+
+/datum/bt_node/ai_behavior/hunt_target/interact_with_target/slime/target_caught(mob/living/basic/slime/hunter, mob/living/hunted)
+	if (!hunter.can_feed_on(hunted)) // Target is no longer edible
+		hunter.UnarmedAttack(hunted, TRUE)
+		return
+
+	if((hunted.body_position != STANDING_UP) || prob(20)) //Not standing, or we rolled well? Feed.
+		hunter.start_feeding(hunted)
+		return
+
+	if(hunted.client && hunted.health >= 20) //If target has a client and is healthy, punch them a bit before feasting
+		hunter.UnarmedAttack(hunted, TRUE)
+		return
+
+	hunter.start_feeding(hunted)
+
+/datum/bt_node/ai_behavior/hunt_target/interact_with_target/slime/finish_action(datum/ai_controller/controller, succeeded)
+	. = ..()
+	var/mob/living/basic/slime/slime_pawn = controller.pawn
+	var/atom/target = controller.blackboard[target_key]
+	if(!slime_pawn.can_feed_on(target))
+		controller.clear_blackboard_key(target_key)

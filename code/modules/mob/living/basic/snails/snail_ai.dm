@@ -1,16 +1,10 @@
 /datum/ai_controller/basic_controller/snail
+	behavior_tree_json = "snail.bt.json"
 	blackboard = list(
 		BB_TARGETING_STRATEGY = /datum/targeting_strategy/basic,
 	)
 
 	ai_movement = /datum/ai_movement/basic_avoidance
-	idle_behavior = /datum/idle_behavior/idle_random_walk
-	planning_subtrees = list(
-		/datum/ai_planning_subtree/find_nearest_thing_which_attacked_me_to_flee,
-		/datum/ai_planning_subtree/use_mob_ability/snail_retreat,
-		/datum/ai_planning_subtree/find_food,
-		/datum/ai_planning_subtree/find_and_hunt_target/snail_people,
-	)
 
 /datum/ai_planning_subtree/find_and_hunt_target/snail_people
 	target_key = BB_LOW_PRIORITY_HUNTING_TARGET
@@ -23,7 +17,7 @@
 	hunt_chance = 45
 
 /datum/ai_behavior/find_hunt_target/snail_people
-	action_cooldown = 1 MINUTES
+	time_between_perform = 1 MINUTES
 	behavior_flags = AI_BEHAVIOR_CAN_PLAN_DURING_EXECUTION
 
 /datum/ai_behavior/find_hunt_target/snail_people/valid_dinner(mob/living/source, mob/living/carbon/potential_snail, radius, datum/ai_controller/controller, seconds_per_tick)
@@ -48,7 +42,7 @@
 
 /datum/ai_planning_subtree/use_mob_ability/snail_retreat/SelectBehaviors(datum/ai_controller/controller, seconds_per_tick)
 	var/shell_retreated = HAS_TRAIT(controller.pawn, TRAIT_SHELL_RETREATED)
-	var/has_target = controller.blackboard_key_exists(BB_BASIC_MOB_CURRENT_TARGET)
+	var/has_target = controller.blackboard_key_exists(BB_CURRENT_TARGET)
 	if((has_target && shell_retreated) || (!has_target && !shell_retreated))
 		return
 	return ..()
@@ -60,7 +54,7 @@
 		BB_PET_TARGETING_STRATEGY = /datum/targeting_strategy/basic/not_friends,
 	)
 
-	planning_subtrees = list(
+	behavior_nodes = list(
 		/datum/ai_planning_subtree/escape_captivity,
 		/datum/ai_planning_subtree/pet_planning,
 		/datum/ai_planning_subtree/simple_find_target,

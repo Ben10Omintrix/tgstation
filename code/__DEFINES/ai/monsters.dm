@@ -60,16 +60,22 @@
 // bee keys
 ///the bee hive we live inside
 #define BB_CURRENT_HOME "BB_current_home"
+///the bee hive we want to move into
+#define BB_TARGET_HOME "BB_target_home"
 ///the hydro we will pollinate
 #define BB_TARGET_HYDRO "BB_target_hydro"
 ///key to swarm around
 #define BB_SWARM_TARGET "BB_swarm_target"
+///key to indicate if the bee wants to go in or out of its hive.
+#define BB_WANTS_TO_TRANSITION_HIVE "BB_wants_to_transition_hive"
 
 // bear keys
 ///the hive with honey that we will steal from
 #define BB_FOUND_HONEY "BB_found_honey"
 ///the tree that we will climb
 #define BB_CLIMBED_TREE "BB_climbed_tree"
+///tree climbing cooldown
+#define BB_TREE_CLIMBING_COOLDOWN "Tree Climbing Cooldown"
 
 /// Lobstrosities will only attack people with one of these traits
 #define BB_LOBSTROSITY_EXPLOIT_TRAITS "BB_lobstrosity_exploit_traits"
@@ -231,6 +237,21 @@
 #define BB_MOOK_MUSIC_AUDIENCE "music_audience"
 /// the bonfire we will light up
 #define BB_MOOK_BONFIRE_TARGET "bonfire_target"
+/// turf we are wandering toward (away from village)
+#define BB_WANDER_DESTINATION "BB_wander_destination"
+/// turf we will stand on to deposit ores at the material stand
+#define BB_DEPOSIT_POSITION "BB_deposit_position"
+/// list of /datum/pet_command instances the chief can issue
+#define BB_MOOK_COMMANDS "BB_mook_commands"
+/// list of things we can heal
+#define BB_MOOK_HEAL_TARGETS "heal targets"
+/// Cooldown on giving commands
+#define BB_COMMAND_COOLDOWN "command cooldown"
+///Things to light on fire
+#define BB_BONFIRE_TARGETS "bonfire targets"
+///Mook mining cooldown
+#define BB_MOOK_MINING_COOLDOWN "mining cooldown"
+
 
 //gutlunch keys
 ///the trough we will eat from
@@ -301,6 +322,8 @@
 #define BB_DEER_GRASS_TARGET "deer_grass_target"
 ///our tree target
 #define BB_DEER_TREE_TARGET "deer_tree_target"
+///set when we roll the urge to go find another deer to play with
+#define BB_DEER_WANTS_TO_PLAY "deer_wants_to_play"
 ///our temporary playmate
 #define BB_DEER_PLAYFRIEND "deer_playfriend"
 ///our home target
@@ -309,6 +332,11 @@
 #define BB_DEER_RESTING "deer_resting"
 ///time till our next rest duration
 #define BB_DEER_NEXT_REST_TIMER "deer_next_rest_timer"
+///cooldowns gating how often we graze, drink and mark territory
+#define BB_DEER_GRAZE_COOLDOWN "deer_graze_cooldown"
+#define BB_DEER_DRINK_COOLDOWN "deer_drink_cooldown"
+#define BB_DEER_MARK_COOLDOWN "deer_mark_cooldown"
+#define BB_DEER_PLAY_COOLDOWN "deer_play_cooldown"
 
 //the thing boss
 #define BB_THETHING_CHARGE "BB_THETHING_CHARGE"
@@ -318,19 +346,25 @@
 #define BB_THETHING_CARDTENDRILS "BB_THETHING_CARDTENDRILS"
 #define BB_THETHING_ACIDSPIT "BB_THETHING_ACIDSPIT"
 /// Blackboard key for The Thing boss that determines attack mode. TRUE means it will focus on closing the distance and murdering the person in question. Otherwise AOE.
-#define BB_THETHING_ATTACKMODE "BB_THETHING_ATTACKMODE"
+#define BB_THETHING_MELEEMODE "BB_THETHING_MELEEMODE"
 /// The Thing will be in attack mode forever if true
 #define BB_THETHING_NOAOE "BB_THETHING_NOAOE"
 /// What (first in combo) attack was last executed
 #define BB_THETHING_LASTAOE "BB_THETHING_LASTAOE"
+/// The action object selected by pick_random_ability for the current AOE slot
+#define BB_THETHING_SELECTED_AOE "BB_THETHING_SELECTED_AOE"
 
-//turtle
-///our tree's ability
-#define BB_TURTLE_TREE_ABILITY "turtle_tree_ability"
 ///people we headbutt!
 #define BB_TURTLE_HEADBUTT_VICTIM "turtle_headbutt_victim"
 ///flore we must smell
 #define BB_TURTLE_FLORA_TARGET "turtle_flora_target"
+///Cooldown between headbutts
+#define BB_TURTLE_HEADBUTT_COOLDOWN "turtle_headbutt_cooldown"
+///Cooldown between smelling flora
+#define BB_TURTLE_FLORA_COOLDOWN "turtle_flora_cooldown"
+#define BB_TURTLE_HEADBUTT_TYPES "turtle_headbutt_types"
+#define BB_TURTLE_FLORA_TYPES "turtle_flora_types"
+
 
 #define BB_GUNMIMIC_GUN_EMPTY "BB_GUNMIMIC_GUN_EMPTY"
 

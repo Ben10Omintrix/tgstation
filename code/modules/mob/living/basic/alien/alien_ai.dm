@@ -1,11 +1,12 @@
 /datum/ai_controller/basic_controller/alien
+	behavior_tree_json = "alien.bt.json"
 	ai_movement = /datum/ai_movement/basic_avoidance
 	idle_behavior = /datum/idle_behavior/idle_random_walk
 	blackboard = list(
 		BB_TARGETING_STRATEGY = /datum/targeting_strategy/basic,
 	)
 
-	planning_subtrees = list(
+	behavior_nodes = list(
 		/datum/ai_planning_subtree/escape_captivity,
 		/datum/ai_planning_subtree/simple_find_target,
 		/datum/ai_planning_subtree/attack_obstacle_in_path,
@@ -15,7 +16,7 @@
 	movement_delay = 0.8 SECONDS
 
 /datum/ai_controller/basic_controller/alien/sentinel
-	planning_subtrees = list(
+	behavior_nodes = list(
 		/datum/ai_planning_subtree/escape_captivity,
 		/datum/ai_planning_subtree/simple_find_target,
 		/datum/ai_planning_subtree/attack_obstacle_in_path,
@@ -28,7 +29,7 @@
 /datum/ai_controller/basic_controller/alien/queen
 	idle_behavior = /datum/idle_behavior/idle_random_walk/plant_weeds/queen
 
-	planning_subtrees = list(
+	behavior_nodes = list(
 		/datum/ai_planning_subtree/escape_captivity,
 		/datum/ai_planning_subtree/simple_find_target,
 		/datum/ai_planning_subtree/attack_obstacle_in_path,
@@ -43,8 +44,8 @@
 	ranged_attack_behavior = /datum/ai_behavior/basic_ranged_attack/alien
 
 /datum/ai_behavior/basic_ranged_attack/alien
-	action_cooldown = 3 SECONDS
-	required_distance = 3
+	time_between_perform = 3 SECONDS
+	max_range = 3
 	avoid_friendly_fire = TRUE
 
 /datum/idle_behavior/idle_random_walk/plant_weeds
