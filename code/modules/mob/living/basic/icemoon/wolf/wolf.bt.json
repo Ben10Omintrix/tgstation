@@ -12,24 +12,11 @@
 			"override_id": "SUBPLAN_ID_PET_COMMAND"
 		},
 		{
-			"type": "decorator",
-			"decorator": "/datum/bt_node/decorator/cooldown",
-			"vars": {
-				"cooldown_key": "BB_BASIC_MOB_REINFORCEMENTS_COOLDOWN",
-				"cooldown_duration": "30 SECONDS",
-				"lock_on_succeed": true
-			},
-			"child": {
-				"type": "leaf",
-				"behavior": "/datum/bt_node/ai_behavior/call_reinforcements"
-			}
-		},
-		{
 			"type": "parallel",
 			"failure_policy": "BT_PARALLEL_FAILURE_CHILD_ONE",
 			"success_policy": "BT_PARALLEL_SUCCESS_CHILD_ONE",
 			"repeat_secondary": true,
-			"repeat_secondary_delay": "BASIC_MOB_FIND_ENEMY_RATE",
+			"repeat_secondary_delay": "BASIC_MOB_FIND_TARGET_RATE",
 			"finish_on_primary": true,
 			"children": [
 				{
@@ -83,6 +70,20 @@
 														]
 													}
 												]
+											},
+											{
+												"type": "decorator",
+												"decorator": "/datum/bt_node/decorator/cooldown",
+												"vars": {
+													"observer_abort": "BT_ABORT_LOWER_PRIORITY",
+													"cooldown_key": "BB_BASIC_MOB_REINFORCEMENTS_COOLDOWN",
+													"cooldown_duration": "30 SECONDS",
+													"lock_on_succeed": true
+												},
+												"child": {
+													"type": "leaf",
+													"behavior": "/datum/bt_node/ai_behavior/call_reinforcements"
+												}
 											},
 											{
 												"type": "leaf",

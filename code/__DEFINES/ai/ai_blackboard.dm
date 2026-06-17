@@ -98,6 +98,12 @@
 #define BB_LOW_PRIORITY_HUNTING_TARGET "BB_low_priority_hunting_target"
 ///key that holds the cooldown for our hunting subtree
 #define BB_HUNTING_COOLDOWN(type) "BB_HUNTING_COOLDOWN_[type]"
+///cooldown key for the mouse's cheese hunt
+#define BB_MOUSE_CHEESE_HUNT_COOLDOWN "BB_mouse_cheese_hunt_cooldown"
+///cooldown key for the mouse's cable hunt
+#define BB_MOUSE_CABLE_HUNT_COOLDOWN "BB_mouse_cable_hunt_cooldown"
+///Whether we're hungry for a cable
+#define BB_MOUSE_WANTS_TO_EAT_CABLE "BB_mouse_wants_to_eat_cable"
 
 ///Basic Mob Keys
 
@@ -218,7 +224,7 @@
 ///are we in some kind of temporary state of ignoring factions when targeting? can result in volatile results if multiple behaviours touch this
 #define BB_TEMPORARILY_IGNORE_FACTION "BB_temporarily_ignore_factions"
 
-///currently only used by clowns, a list of what can the mob speak randomly
+///A list of what can the mob speak randomly
 #define BB_BASIC_MOB_SPEAK_LINES "BB_speech_lines"
 #define BB_EMOTE_SAY "emote_say"
 #define BB_EMOTE_HEAR "emote_hear"

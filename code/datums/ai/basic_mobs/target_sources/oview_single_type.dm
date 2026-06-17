@@ -7,12 +7,16 @@
 	for(var/atom/candidate as anything in oview(range, pawn))
 		if(istype(candidate, single_typepath))
 			candidates += candidate
-	if(candidates.len)
-		candidates = reverse_range(candidates)
 	return candidates
 
 /datum/target_source/oview_single_type/carbon_mob
 	single_typepath = /mob/living/carbon
+
+/datum/target_source/oview_single_type/human_mob
+	single_typepath = /mob/living/carbon/human
+
+/datum/target_source/oview_single_type/living_mob
+	single_typepath = /mob/living
 
 /datum/target_source/oview_single_type/disposal_unit
 	single_typepath = /obj/machinery/disposal
@@ -64,3 +68,9 @@
 
 /datum/target_source/oview_single_type/hydroponics
 	single_typepath = /obj/machinery/hydroponics
+
+/datum/target_source/oview_single_type/cheese
+	single_typepath = /obj/item/food/cheese
+
+/datum/target_source/oview_single_type/piano_synth
+	single_typepath = /obj/item/instrument/piano_synth
