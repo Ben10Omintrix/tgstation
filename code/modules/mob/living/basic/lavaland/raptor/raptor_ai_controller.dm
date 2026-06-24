@@ -1,4 +1,5 @@
 /datum/ai_controller/basic_controller/raptor
+	behavior_tree_json = "raptor_ai.bt.json"
 	blackboard = list(
 		BB_INTERACTIONS_WITH_OWNER = list(
 			"pecks",
@@ -12,7 +13,6 @@
 		BB_MAX_CHILDREN = 5,
 		BB_RAPTOR_FLEE_THRESHOLD = 0.25,
 	)
-
 	ai_movement = /datum/ai_movement/basic_avoidance
 	idle_behavior = /datum/idle_behavior/idle_random_walk
 	behavior_nodes = list(
