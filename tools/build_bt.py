@@ -12,7 +12,7 @@ Usage:
 
 Options:
     --check     Verify that all generated files are up to date without writing anything.
-                Exits with code 1 if any file differs. Used by CI.
+                Exits with code 1 if any file differs. Used by continious int (hopefully).
 """
 
 import ast
@@ -41,7 +41,7 @@ STATIC_NODES: dict[str, str] = {
     'subplan':  '/datum/bt_node/composite/subplan',
 }
 
-# Source JSON structural keys that are consumed/transformed during compilation.
+# Source JSON structural keys that are consumed/transformed during compilation. please keep these updated if u add new stuff :D
 _CONSUMED_KEYS = frozenset({'type', 'children', 'child', 'decorator', 'behavior', 'vars', 'subtype', 'dm_type', 'bindings'})
 
 
@@ -53,7 +53,7 @@ def parse_defines(repo_root: Path) -> dict:
 
     Uses multi-pass resolution so that defines referencing other defines work
     regardless of file or declaration order.  Stops when a full pass makes no
-    new progress (handles transitive references; cycles are silently skipped).
+    new progress.
     """
     defines: dict = {
         'TRUE':  1,
@@ -209,20 +209,13 @@ def compile_node(src: dict, defines: dict) -> dict:
     elif 'child' in src:
         out[desc_children] = [compile_node(src['child'], defines)]
 
-    # Positional "args" and "config" are no longer supported — every node
-    # (leaf, decorator, composite) is configured via "vars".
-    if 'args' in src:
-        raise ValueError(f'"args" is no longer supported in node {node_type!r} — use "vars"')
-    if 'config' in src:
-        raise ValueError(f'"config" is no longer supported in node {node_type!r} — use "vars"')
-
-    # Instance vars — "" means omit the key (DM uses the type var default)
+    # Instance vars — "" means omit the key (cuz then we use the default)
     for key, val in src.get('vars', {}).items():
         rv = resolve_value(val, defines)
         if rv != '':
             out[key] = rv
 
-    # Bindings: declaration on a subtree definition file's root vs. call-site overrides
+    # Bindings: declaration on a subtree definition file's root vs call-site overrides
     if 'bindings' in src:
         if node_type == 'subtree':
             # Call-site overrides: resolve values through defines, emit as "bindings" (becomes node.vars)
@@ -257,6 +250,7 @@ def main() -> int:
             repo_root = Path(sys.argv[idx + 1]).resolve()
 
     generated_dir = repo_root / 'build' / 'behavior_trees'
+    code_dir = repo_root / 'code'
     generated_dir.mkdir(parents=True, exist_ok=True)
 
     print('Parsing DM defines...')
@@ -268,14 +262,28 @@ def main() -> int:
 
     errors = 0
     dirty = 0
+    # Maps each target compiled path back to the source that produced it, so we can
+    # detect two sources colliding onto one output. shouldn't happen, can happen.
+    produced: dict[Path, Path] = {}
+    generated_paths: set[Path] = set()
 
     for src_path in bt_files:
-        # src_path.stem strips one extension, giving e.g. "simple_hostile_combat.bt"
-        # We want the base name without the .bt part. so we can slam a compiled inbetween :3
-        stem = src_path.stem  # "simple_hostile_combat.bt"
-        name = stem[:-3] if stem.endswith('.bt') else stem  # "simple_hostile_combat"
-        compiled_name = f'{name}.bt.compiled.json'
-        compiled_path = generated_dir / compiled_name
+        # The compiled file mirrors the source path relative to code/, so trees that share a basename dont fucking break.
+        rel = src_path.relative_to(code_dir).as_posix()  # "datums/ai/dog/dog.bt.json"
+        tree_name = rel[:-len('.json')]                   # "datums/ai/dog/dog.bt"
+        compiled_path = generated_dir / f'{tree_name}.compiled.json'
+
+        prior = produced.get(compiled_path)
+        if prior is not None:
+            print(
+                f'ERROR: {src_path.relative_to(repo_root)} and {prior.relative_to(repo_root)} '
+                f'both compile to {compiled_path.relative_to(repo_root)}',
+                file=sys.stderr,
+            )
+            errors += 1
+            continue
+        produced[compiled_path] = src_path
+        generated_paths.add(compiled_path)
 
         # compile json
         try:
@@ -292,7 +300,7 @@ def main() -> int:
             errors += 1
             continue
 
-        compiled_text = json.dumps(compiled, separators=(',', ':'))
+        compiled_text = json.dumps(compiled, separators=(',', ':')) + '\n'
 
         # either write or check depending on flag
         if check_mode:
@@ -301,7 +309,23 @@ def main() -> int:
                 print(f'OUT OF DATE: {compiled_path.relative_to(repo_root)}', file=sys.stderr)
                 dirty += 1
         else:
+            compiled_path.parent.mkdir(parents=True, exist_ok=True)
             compiled_path.write_text(compiled_text, encoding='utf-8')
+
+    # Remove stale compiled files that no longer correspond to a source tree —
+    stale = [p for p in generated_dir.rglob('*.compiled.json') if p not in generated_paths]
+    for path in stale:
+        if check_mode:
+            print(f'STALE: {path.relative_to(repo_root)}', file=sys.stderr)
+            dirty += 1
+        else:
+            path.unlink()
+
+    if not check_mode:
+        # Prune now-empty directories left behind under the generated tree.
+        for path in sorted(generated_dir.rglob('*'), reverse=True):
+            if path.is_dir() and not any(path.iterdir()):
+                path.rmdir()
 
     if check_mode:
         if dirty:

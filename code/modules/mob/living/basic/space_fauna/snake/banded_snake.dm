@@ -42,7 +42,7 @@
 	return .
 
 /datum/ai_controller/basic_controller/snake/banded
-	behavior_tree_json = "banded.bt.json"
+	behavior_tree_json = "code/modules/mob/living/basic/space_fauna/snake/banded.bt.json"
 	blackboard = list(
 		BB_TARGETING_STRATEGY = /datum/targeting_strategy/basic,
 		BB_BASIC_MOB_SPEAK_LINES = list(
@@ -54,15 +54,6 @@
 		),
 	)
 	ai_movement = /datum/ai_movement/basic_avoidance
-	idle_behavior = /datum/idle_behavior/idle_random_walk
-
-	behavior_nodes = list(
-		/datum/ai_planning_subtree/escape_captivity,
-		/datum/ai_planning_subtree/simple_find_target,
-		/datum/ai_planning_subtree/basic_melee_attack_subtree,
-		/datum/ai_planning_subtree/find_food,
-	)
-
 
 /mob/living/basic/snake/banded/harmless
 	venom_dose = 0.4

@@ -15,7 +15,7 @@
 	. = ..()
 	if(. & AI_CONTROLLER_INCOMPATIBLE)
 		return
-	// on_clear_target intentionally removed — it caused grab-then-immediately-release bug
+	// on_clear_target intentionally removed  it caused grab-then-immediately-release bug
 	// Cleanup is handled by on_stop_pulling instead
 	RegisterSignal(new_pawn, COMSIG_ATOM_NO_LONGER_PULLING, PROC_REF(on_stop_pulling))
 
@@ -45,7 +45,7 @@
 
 
 
-/// Valid if the target is a visible human who isn't buckled and has gravity — someone a slip can actually knock over.
+/// Valid if the target is a visible human who isn't buckled and has gravity  someone a slip can actually knock over.
 /datum/targeting_strategy/can_see/slip_victim/is_valid_target(mob/living/living_mob, atom/target, vision_range, datum/ai_controller/controller = null)
 	. = ..()
 	if(!.)
@@ -123,8 +123,8 @@
 	var/datum/action/honk_ability = controller.blackboard[BB_HONK_ABILITY]
 	honk_ability?.Trigger()
 	living_pawn.manual_emote("celebrates with [living_target]!")
-	living_pawn.emote("flip")
-	living_pawn.emote("beep")
+	INVOKE_ASYNC(living_pawn, TYPE_PROC_REF(/mob, emote), "flip")
+	INVOKE_ASYNC(living_pawn, TYPE_PROC_REF(/mob, emote), "beep")
 	return AI_BEHAVIOR_DELAY | AI_BEHAVIOR_SUCCEEDED
 
 /datum/bt_node/ai_behavior/play_with_clown/finish_action(datum/ai_controller/basic_controller/bot/controller, succeeded)

@@ -19,19 +19,8 @@ multiple modular subtrees with behaviors
 
 	///Bitfield of traits for this AI to handle extra behavior
 	var/ai_traits = DEFAULT_AI_FLAGS
-	// DEPRECATED queue-based behavior vars — kept for compile compatibility of legacy subtrees.
-	// These are never populated by the new BT execution model.
-	var/alist/planned_behaviors = alist()
-	var/alist/current_behaviors = alist()
-	var/alist/behavior_cooldowns = alist()
-	// DEPRECATED idle behavior — port idle logic to a BT_SELECTOR tail entry.
-	var/datum/idle_behavior/idle_behavior = null
 	///Current status of AI (OFF/ON)
 	var/ai_status
-	///Current movement target of the AI, generally set by decision making.
-	var/atom/current_movement_target
-	///Identifier for what last touched our movement target, so it can be cleared conditionally
-	var/movement_target_source
 	///Tracks recent pathing attempts, if we fail too many in a row we fail our current plans.
 	var/consecutive_pathing_attempts
 	///Can the AI remain in control if there is a client?
@@ -41,11 +30,11 @@ multiple modular subtrees with behaviors
 	/// Repo-relative path to the .bt.json source file for this controller (e.g. "code/datums/ai/basic_mobs/cleanbot.bt.json").
 	/// initialize_behavior_tree() derives the compiled path from this and loads the BT tree at runtime.
 	var/behavior_tree_json = null
-	///All behavior_nodes for the BT tree; populated on init from typepaths or BT_* descriptors.
+	///The root of our tree, which will contain
 	var/list/behavior_nodes
 	/// Execution index of the leaf node currently returning BT_RUNNING. 0 = nothing active.
 	var/active_execution_index = 0
-	/// Set to TRUE by CancelActions() when it fires mid-tick. Checked by composites to abort the current tick loop early, preventing running_child_index from being re-established after a reset. Cleared at the start of SelectBehaviors().
+	/// Set to TRUE by cancel_current_plan() when it fires mid-tick. Checked by composites to abort the current tick loop early, preventing running_child_index from being re-established after a reset. Cleared at the start of SelectBehaviors().
 	var/cancelled_during_tick = FALSE
 	/// Draining log of all leaf execution indices that fired since the last bt_viewer poll. Null when no viewer is attached.
 	var/list/bt_execution_log = null
@@ -66,8 +55,6 @@ multiple modular subtrees with behaviors
 	// The variables below are fucking stupid and should be put into the blackboard at some point.
 	///AI paused time
 	var/paused_until = 0
-	///Can this AI idle?
-	var/can_idle = TRUE
 	///What distance should we be checking for interesting things when considering idling/deidling? Defaults to AI_DEFAULT_INTERESTING_DIST
 	var/interesting_dist = AI_DEFAULT_INTERESTING_DIST
 	/// TRUE if we're able to run, FALSE if we aren't
@@ -75,9 +62,6 @@ multiple modular subtrees with behaviors
 	/// Make sure you hook update_able_to_run() in setup_able_to_run() to whatever parameters changing that you added
 	/// Otherwise we will not pay attention to them changing
 	var/able_to_run = FALSE
-
-	///Can run even if no clients are on the zlevel, used by
-	var/can_run_without_clients_on_zlevel = FALSE
 
 /datum/ai_controller/New(atom/new_pawn)
 	change_ai_movement_type(ai_movement)
@@ -95,26 +79,10 @@ multiple modular subtrees with behaviors
 				controller_subsystem.currentrun -= src
 				break
 	our_cells = null
-	set_movement_target(type, null)
 	if(ai_movement.moving_controllers[src])
 		ai_movement.stop_moving_towards(src)
+	QDEL_LIST(behavior_nodes)
 	return ..()
-
-///Sets the current movement target, with an optional param to override the movement behavior
-/datum/ai_controller/proc/set_movement_target(source, atom/target, datum/ai_movement/new_movement)
-	if(current_movement_target)
-		UnregisterSignal(current_movement_target, list(COMSIG_MOVABLE_MOVED, COMSIG_PREQDELETED))
-	if(!isnull(target) && !isatom(target))
-		stack_trace("[pawn]'s current movement target is not an atom, rather a [target.type]! Did you accidentally set it to a weakref?")
-		CancelActions()
-		return
-	movement_target_source = source
-	current_movement_target = target
-	if(!isnull(current_movement_target))
-		RegisterSignal(current_movement_target, COMSIG_MOVABLE_MOVED, PROC_REF(on_movement_target_move))
-		RegisterSignal(current_movement_target, COMSIG_PREQDELETED, PROC_REF(on_movement_target_delete))
-	if(new_movement)
-		change_ai_movement_type(new_movement)
 
 ///Overrides the current ai_movement of this controller with a new one
 /datum/ai_controller/proc/change_ai_movement_type(datum/ai_movement/new_movement)
@@ -122,8 +90,10 @@ multiple modular subtrees with behaviors
 
 ///Completely replaces the behavior_nodes with a new set based on argument provided.
 /datum/ai_controller/proc/replace_behavior_nodes(list/typepaths_of_new_subtrees)
+	var/list/old_nodes = behavior_nodes
 	behavior_nodes = typepaths_of_new_subtrees
 	initialize_behavior_tree()
+	QDEL_LIST(old_nodes)
 
 /// Resolves the children/child of a composite or decorator node, creating configured instances.
 /// Safe to call on any node type; non-composite/non-decorator nodes are a no-op.
@@ -140,12 +110,7 @@ multiple modular subtrees with behaviors
 				stack_trace("BT composite [node.type] references unknown child type [child_type]")
 				continue
 			resolved_children += child
-		if(istype(comp, /datum/bt_node/composite/subplan) && length(resolved_children) > 1)
-			var/datum/bt_node/composite/sequence/legacy_subplan_sequence = new
-			legacy_subplan_sequence.children = resolved_children
-			comp.children = list(legacy_subplan_sequence)
-		else
-			comp.children = resolved_children
+		comp.children = resolved_children
 	else if(istype(node, /datum/bt_node/decorator))
 		var/datum/bt_node/decorator/dec = node
 		if(isnull(dec.child_typepath) || !isnull(dec.child))
@@ -158,9 +123,8 @@ multiple modular subtrees with behaviors
 		if(!isnull(sub.behavior_nodes) && isnull(sub.root))
 			sub.root = build_node_from_descriptor(sub.behavior_nodes)
 		else if(!isnull(sub.behavior_tree_json) && isnull(sub.root))
-			var/filename = copytext(sub.behavior_tree_json, findlasttext(sub.behavior_tree_json, "/") + 1)
-			var/tree_name = copytext(filename, 1, length(filename) - 4)
-			var/list/raw_desc = json_decode(file2text(BT_COMPILED_PATH(tree_name)))
+			var/file = file(BT_COMPILED_PATH(sub.behavior_tree_json))
+			var/list/raw_desc = json_decode(file2text(file))
 			if(LAZYLEN(sub.bindings) || !isnull(raw_desc[BT_DESC_BINDINGS]))
 				raw_desc = apply_bindings_to_descriptor(raw_desc, sub.bindings)
 			sub.root = build_node_from_descriptor(raw_desc)
@@ -190,7 +154,8 @@ multiple modular subtrees with behaviors
 
 ///Loads and decodes a compiled BT JSON file into a node tree.
 /datum/ai_controller/proc/load_tree_from_json(path)
-	var/list/desc = json_decode(file2text(path))
+	var/file = file(path)
+	var/list/desc = json_decode(file2text(file))
 	return build_node_from_descriptor(desc)
 
 /**
@@ -237,6 +202,7 @@ multiple modular subtrees with behaviors
  * BT_DESC_TYPE and BT_DESC_CHILDREN are consumed internally; all other keys are written
  * as vars onto the node. String values starting with "/" are resolved via text2path so
  * typepath args (e.g. "/datum/ai_movement/basic_avoidance") arrive as actual types.
+ * If you put / in a string then yeah that might cause issues, should probably fix that later!
  */
 /datum/ai_controller/proc/build_node_from_descriptor(list/desc)
 	var/raw_type = desc[BT_DESC_TYPE]
@@ -272,11 +238,7 @@ multiple modular subtrees with behaviors
 /// Builds the per-controller BT node tree from behavior_nodes typepaths or descriptors, then finalizes it.
 /datum/ai_controller/proc/initialize_behavior_tree()
 	if(!isnull(behavior_tree_json) && !LAZYLEN(behavior_nodes))
-
-		///This kind of sucks to do every time, but I don't know if there's a nicer way to inject .compiled into the path?
-		var/filename = copytext(behavior_tree_json, findlasttext(behavior_tree_json, "/") + 1) // Find the filename
-		var/tree_name = copytext(filename, 1, length(filename) - 4) //Remove the .json extension
-		var/compiled_path = BT_COMPILED_PATH(tree_name) //Find the compiled version of this BT
+		var/compiled_path = BT_COMPILED_PATH(behavior_tree_json) //Find the compiled version of this BT
 		var/datum/bt_node/root = load_tree_from_json(compiled_path)
 		if(isnull(root))
 			stack_trace("[type] failed to load behavior tree from compiled JSON: [compiled_path]")
@@ -314,7 +276,7 @@ multiple modular subtrees with behaviors
 	for(var/datum/bt_node/root in behavior_nodes)
 		root.parent_node = null
 	var/index = 1
-	while(index <= length(to_visit))
+	while(index <= length(to_visit)) //while loop so we can recursively keep populating this list
 		var/datum/bt_node/node = to_visit[index++]
 		node.finalize_node(src, to_visit)
 	var/counter = 1
@@ -336,6 +298,7 @@ multiple modular subtrees with behaviors
 
 	pawn = new_pawn
 	pawn.ai_controller = src
+	set_blackboard_key(BB_MY_PAWN, pawn, FALSE) //Don't track the datum we already handle qdel of pawn here.
 
 	var/turf/pawn_turf = get_turf(pawn)
 	if(pawn_turf)
@@ -362,20 +325,6 @@ multiple modular subtrees with behaviors
 	SIGNAL_HANDLER
 
 	set_new_cells()
-	if(current_movement_target)
-		check_target_max_distance()
-
-/datum/ai_controller/proc/on_movement_target_move(atom/source)
-	SIGNAL_HANDLER
-	check_target_max_distance()
-
-/datum/ai_controller/proc/on_movement_target_delete(atom/source)
-	SIGNAL_HANDLER
-	set_movement_target(source = type, target = null)
-
-/datum/ai_controller/proc/check_target_max_distance()
-	if(get_dist(current_movement_target, pawn) > max_target_distance)
-		CancelActions()
 
 /datum/ai_controller/proc/set_new_cells()
 	if(isnull(our_cells))
@@ -398,7 +347,12 @@ multiple modular subtrees with behaviors
 	recalculate_idle()
 
 /datum/ai_controller/proc/should_idle()
-	if(!can_idle || isnull(our_cells))
+	if(ai_traits & CANNOT_GO_IDLE)
+		return FALSE
+	if(isnull(our_cells))
+		return FALSE
+	var/turf/pawn_turf = get_turf(pawn)
+	if(isnull(pawn_turf) || is_station_level(pawn_turf.z))
 		return FALSE
 	for(var/datum/spatial_grid_cell/grid as anything in our_cells.member_cells)
 		if(locate(/mob/living) in grid.client_contents)
@@ -467,7 +421,7 @@ multiple modular subtrees with behaviors
 	if(!pawn_turf)
 		CRASH("AI controller [src] controlling pawn ([pawn]) is not on a turf.")
 #endif
-	if((!length(SSmobs.clients_by_zlevel[pawn_turf.z]) && !can_run_without_clients_on_zlevel)|| !able_to_run)
+	if((!length(SSmobs.clients_by_zlevel[pawn_turf.z]) && !(ai_traits & CAN_RUN_WITHOUT_CLIENTS))|| !able_to_run)
 		return AI_STATUS_OFF
 	if(should_idle())
 		return AI_STATUS_IDLE
@@ -512,7 +466,7 @@ multiple modular subtrees with behaviors
 	if(destroy)
 		qdel(src)
 
-///Call reset tick state on every node in the tree
+///Call reset tick state on every node in the tree.
 /datum/ai_controller/proc/reset_bt_tick_states()
 	if(!LAZYLEN(behavior_nodes))
 		return
@@ -526,32 +480,30 @@ multiple modular subtrees with behaviors
 /**
  * Installs or removes a runtime override on the subtree slot registered with the given id.
  *
- * id          — a SUBPLAN_ID_* constant matching a subtree node's override_id in this tree.
- * datum_type  — the /datum/bt_node/subtree subtype to install, or null to clear the override.
+ * id - The ID for this slot
+ * override_subtree - actual subtree we're setting
  */
-/datum/ai_controller/proc/set_behavior_tree_override(id, datum_type)
+/datum/ai_controller/proc/set_behavior_tree_override(id, override_subtree)
 	var/datum/bt_node/subtree/slot = LAZYACCESS(override_slots, id)
 	if(isnull(slot))
 		return
 
 	var/current_type = isnull(slot.override_node) ? null : slot.override_node.type
-	if(current_type == datum_type)
+	if(current_type == override_subtree)
 		return
 
-
-
-	if(isnull(datum_type))
+	if(isnull(override_subtree))
 		slot.override_node = null
 		finalize_tree()
 		SEND_SIGNAL(pawn, COMSIG_AI_OVERRIDE_SLOT_CHANGED(id), null)
 		return
 
-	var/datum/bt_node/subtree/new_node = new datum_type
+	var/datum/bt_node/subtree/new_node = new override_subtree
 	resolve_node_children(new_node)
 	slot.override_node = new_node
 	finalize_tree()
-	CancelActions() // Reset, not ideal; Maybe later on we can do this more gracefully.
-	SEND_SIGNAL(pawn, COMSIG_AI_OVERRIDE_SLOT_CHANGED(id), datum_type)
+	cancel_current_plan() // Reset, not ideal; Maybe later on we can do this more gracefully.
+	SEND_SIGNAL(pawn, COMSIG_AI_OVERRIDE_SLOT_CHANGED(id), override_subtree)
 
 /datum/ai_controller/proc/setup_able_to_run()
 	// paused_until is handled by PauseAi() manually
@@ -565,7 +517,7 @@ multiple modular subtrees with behaviors
 	var/run_flags = get_able_to_run()
 	if(run_flags & AI_UNABLE_TO_RUN)
 		able_to_run = FALSE
-		GLOB.move_manager.stop_looping(pawn) //stop moving
+		ai_movement.fail_movement(src)
 	else
 		able_to_run = TRUE
 	set_ai_status(get_expected_ai_status(), run_flags)
@@ -579,19 +531,16 @@ multiple modular subtrees with behaviors
 	return NONE
 
 ///Can this pawn interact with objects?
-/datum/ai_controller/proc/ai_can_interact()
-	SHOULD_CALL_PARENT(TRUE)
-	return !QDELETED(pawn)
+/datum/ai_controller/proc/ai_can_interact(atom/target)
+	return !QDELETED(pawn) && !QDELETED(target)
 
 ///Interact with objects
 /datum/ai_controller/proc/ai_interact(target, combat_mode, list/modifiers)
-	if(!ai_can_interact())
-		return FALSE
-
 	var/atom/final_target = isdatum(target) ? target : blackboard[target] //incase we got a blackboard key instead
 
-	if(QDELETED(final_target))
+	if(!ai_can_interact(final_target))
 		return FALSE
+
 	var/params = list2params(modifiers)
 	var/mob/living/living_pawn = pawn
 	if(isnull(combat_mode))
@@ -631,26 +580,14 @@ multiple modular subtrees with behaviors
 	GLOB.ai_controllers_by_status[new_ai_status] += src
 	if(ai_status == AI_STATUS_OFF)
 		if(!(additional_flags & AI_PREVENT_CANCEL_ACTIONS))
-			CancelActions()
+			cancel_current_plan()
 
 /datum/ai_controller/proc/PauseAi(time)
 	paused_until = world.time + time
 	update_able_to_run()
 	addtimer(CALLBACK(src, PROC_REF(update_able_to_run)), time)
 
-/// DEPRECATED — modify_cooldown is kept for compile compat with legacy ai_target_tracking code.
-/datum/ai_controller/proc/modify_cooldown(datum/ai_behavior/behavior, new_cooldown)
-	behavior_cooldowns[behavior] = new_cooldown
-
-/// DEPRECATED — queue_behavior is a no-op. Behaviors execute directly via BT tick().
-/datum/ai_controller/proc/queue_behavior(behavior_type, ...)
-	return
-
-/// DEPRECATED — dequeue_behavior is a no-op. Behaviors finish via BT tick() returning BT_SUCCESS/FAILURE.
-/datum/ai_controller/proc/dequeue_behavior(datum/ai_behavior/behavior)
-	return
-
-/datum/ai_controller/proc/CancelActions()
+/datum/ai_controller/proc/cancel_current_plan()
 	active_execution_index = 0
 	cancelled_during_tick = TRUE
 	reset_bt_tick_states()
@@ -671,14 +608,14 @@ multiple modular subtrees with behaviors
 /datum/ai_controller/proc/on_sentience_lost()
 	SIGNAL_HANDLER
 	UnregisterSignal(pawn, COMSIG_MOB_LOGOUT)
-	set_ai_status(AI_STATUS_IDLE) //Can't do anything while player is connected
+	reset_ai_status() //resume AI control now that the client is gone
 	RegisterSignal(pawn, COMSIG_MOB_LOGIN, PROC_REF(on_sentience_gained))
 
 // Turn the controller off if the pawn has been qdeleted
-/datum/ai_controller/proc/on_pawn_qdeleted()
+/datum/ai_controller/proc/on_pawn_qdeleted(datum/source)
 	SIGNAL_HANDLER
+	sig_remove_from_blackboard(source)
 	set_ai_status(AI_STATUS_OFF)
-	set_movement_target(type, null)
 	if(ai_movement.moving_controllers[src])
 		ai_movement.stop_moving_towards(src)
 
@@ -762,8 +699,9 @@ multiple modular subtrees with behaviors
  *
  * * key - A blackboard key
  * * thing - a value to set the blackboard key to.
+ * * track_datum - whether we should track this ref for deletion, this should always be TRUE unless you really know wtf you're doing
  */
-/datum/ai_controller/proc/set_blackboard_key(key, thing)
+/datum/ai_controller/proc/set_blackboard_key(key, thing, track_datum = TRUE)
 	// Assume it is an error when trying to set a value overtop a list
 	if(islist(blackboard[key]))
 		CRASH("set_blackboard_key attempting to set a blackboard value to key [key] when it's a list!")
@@ -775,7 +713,8 @@ multiple modular subtrees with behaviors
 	if(!isnull(blackboard[key]))
 		clear_blackboard_key(key)
 
-	TRACK_AI_DATUM_TARGET(thing, key)
+	if(track_datum)
+		TRACK_AI_DATUM_TARGET(thing, key)
 	blackboard[key] = thing
 	post_blackboard_key_set(key)
 
@@ -1067,7 +1006,7 @@ multiple modular subtrees with behaviors
 		for(var/datum/bt_node/root_node as anything in behavior_nodes)
 			var/datum/bt_node/found = root_node.find_by_index(active_execution_index)
 			if(found)
-				active_node_label = found.get_label()
+				active_node_label = found.label
 				break
 	EVLOG_TRACK_INFO_ENTRY(track_info, "Execution Context", "Active Execution Index", "[active_execution_index] ([active_node_label])")
 	EVLOG_TRACK_INFO_ENTRY(track_info, "Execution Context", "AI Status", ai_status == AI_STATUS_ON ? "ON" : (ai_status == AI_STATUS_IDLE ? "IDLE" : "OFF"))

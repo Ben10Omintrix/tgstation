@@ -60,8 +60,7 @@
 															"behavior": "/datum/bt_node/ai_behavior/targeted_mob_ability",
 															"vars": {
 																"ability_key": "BB_WIZARD_SECONDARY_SPELL",
-																"target_key": "BB_CURRENT_TARGET",
-																"min_distance": 0
+																"target_key": "BB_CURRENT_TARGET"
 															}
 														},
 														{
@@ -69,8 +68,7 @@
 															"behavior": "/datum/bt_node/ai_behavior/targeted_mob_ability",
 															"vars": {
 																"ability_key": "BB_WIZARD_BLINK_SPELL",
-																"target_key": "BB_CURRENT_TARGET",
-																"min_distance": 0
+																"target_key": "BB_CURRENT_TARGET"
 															}
 														}
 													]
@@ -89,16 +87,8 @@
 							}
 						},
 						{
-							"type": "subplan",
-							"success_policy": "BT_SUBPLAN_LOOP_ON_SUCCESS",
-							"failure_policy": "BT_SUBPLAN_FAIL_ON_FAILURE",
-							"loop_delay": "IDLE_BEHAVIOR_RATE",
-							"children": [
-								{
-									"type": "leaf",
-									"behavior": "/datum/bt_node/ai_behavior/idle_random_walk"
-								}
-							]
+							"type": "subtree",
+							"subtype": "/datum/bt_node/subtree/random_walk"
 						}
 					]
 				},

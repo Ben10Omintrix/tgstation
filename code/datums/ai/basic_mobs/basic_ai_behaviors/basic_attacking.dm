@@ -4,7 +4,7 @@
 /// Perform a melee attack on the target specified.
 /datum/bt_node/ai_behavior/basic_melee_attack
 	var/target_key
-	var/targeting_strategy
+	var/targeting_strategy = BB_TARGETING_STRATEGY
 	var/hiding_location_key
 
 /datum/bt_node/ai_behavior/basic_melee_attack/setup(datum/ai_controller/controller)
@@ -52,7 +52,7 @@
 	controller.set_blackboard_key(hiding_location_key, hiding_target)
 
 	var/atom/final_target = hiding_target || target
-	controller.ai_interact(target = final_target, combat_mode = TRUE)
+	INVOKE_ASYNC(controller, TYPE_PROC_REF(/datum/ai_controller, ai_interact), final_target, TRUE)
 	return AI_BEHAVIOR_DELAY | AI_BEHAVIOR_SUCCEEDED
 
 /// Single-hit variant: terminates after one successful attack and always clears the target key.
@@ -62,27 +62,10 @@
 	. = ..()
 	controller.clear_blackboard_key(target_key)
 
-// DEPRECATED — port to /datum/bt_node/ai_behavior/basic_melee_attack
-/datum/ai_behavior/basic_melee_attack
-	parent_type = /datum/bt_node/ai_behavior/basic_melee_attack
-	///do we have any alternate movement behavior? (legacy, unused in BT)
-	var/movement_behavior
-
-// DEPRECATED — port to /datum/bt_node/ai_behavior/basic_melee_attack/interact_once
-/datum/ai_behavior/basic_melee_attack/interact_once
-	parent_type = /datum/bt_node/ai_behavior/basic_melee_attack/interact_once
-
-// DEPRECATED — port to /datum/bt_node/ai_behavior/basic_ranged_attack
-/datum/ai_behavior/basic_ranged_attack
-	parent_type = /datum/bt_node/ai_behavior/basic_ranged_attack
-
-/datum/ai_behavior/basic_ranged_attack/avoid_friendly_fire
-	avoid_friendly_fire = TRUE
-
 //Basic ranged attack behavior
 /datum/bt_node/ai_behavior/basic_ranged_attack
 	var/target_key
-	var/targeting_strategy
+	var/targeting_strategy = BB_TARGETING_STRATEGY
 	var/hiding_location_key
 	time_between_perform = 0.6 SECONDS
 	/// Max range at which we can fire. Make sure your movement actually gets you this close please
@@ -115,7 +98,7 @@
 	if(!can_see(basic_mob, final_target, max_range))
 		return AI_BEHAVIOR_INSTANT | AI_BEHAVIOR_FAILED
 
-	if(avoid_friendly_fire && check_friendly_in_path(basic_mob, target, targeting_strategy))
+	if(avoid_friendly_fire && check_friendly_in_path(basic_mob, target, strategy))
 		adjust_position(basic_mob, target)
 		return AI_BEHAVIOR_INSTANT | AI_BEHAVIOR_FAILED
 

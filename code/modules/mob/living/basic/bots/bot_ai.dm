@@ -11,7 +11,7 @@
 
 	ai_movement = /datum/ai_movement/jps/bot
 	max_target_distance = AI_BOT_PATH_LENGTH
-	can_idle = FALSE
+	ai_traits = DEFAULT_AI_FLAGS | CANNOT_GO_IDLE
 	///keys to be reset when the bot is reset
 	var/list/reset_keys = list(
 		BB_BEACON_TARGET,
@@ -46,7 +46,7 @@
 /datum/ai_controller/basic_controller/bot/proc/on_movement_start(mob/living/basic/bot/source, atom/target)
 	SIGNAL_HANDLER
 
-	if(current_movement_target == blackboard[BB_BEACON_TARGET])
+	if(target == blackboard[BB_BEACON_TARGET])
 		source.update_bot_mode(new_mode = BOT_PATROL)
 		return
 
@@ -94,7 +94,7 @@
 
 /datum/ai_controller/basic_controller/bot/proc/reset_bot()
 	SIGNAL_HANDLER
-	CancelActions()
+	cancel_current_plan()
 	if(!length(reset_keys))
 		return
 	for(var/key in reset_keys)

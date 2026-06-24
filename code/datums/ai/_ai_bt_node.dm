@@ -1,18 +1,7 @@
-/**
- * Base class for all behavior tree nodes.
- *
- * Each controller builds its own tree of node instances, so all state lives
- * directly on the instance rather than in assoc lists keyed by controller.
- */
+///Base node for behavior tree nodes
 /datum/bt_node
-	/// Node type identifier for the BT viewer. One of the BT_NODE_* defines.
+	/// Node type identifier.
 	var/node_type = BT_NODE_LEAF
-	/// How often (deciseconds) this node re-evaluates. 0 = every planning tick.
-	var/tick_rate = 0
-	/// world.time of last evaluation. Only meaningful when tick_rate > 0.
-	var/tick_cooldown = 0
-	/// Cached last BT_* result. Only meaningful when tick_rate > 0.
-	var/tick_result = BT_FAILURE
 	/// Pre-order depth-first index of this node in the tree. Assigned by finalize_tree().
 	var/execution_index = 0
 	/// Index of the last descendant node in this subtree. Equal to execution_index for leaves.
@@ -22,24 +11,26 @@
 	var/datum/bt_node/parent_node = null
 	///Owning controller for this node
 	var/datum/ai_controller/owning_controller = null
+	/// Short display label, set at New() by stripping standard path prefixes from the type.
+	var/label = ""
 
-/// Returns TRUE if enough time has elapsed for this node to be re-evaluated.
-/datum/bt_node/proc/should_tick()
-	if(!tick_rate)
-		return TRUE
-	return tick_cooldown + tick_rate <= world.time
+/datum/bt_node/New()
+	. = ..()
+	if(!label)
+		var/t = "[type]"
+		t = replacetext(t, "/datum/bt_node/decorator/", "")
+		t = replacetext(t, "/datum/bt_node/ai_behavior/", "")
+		t = replacetext(t, "/datum/bt_node/subtree/", "")
+		label = t
 
-/**
- * Called during ai_controller/SelectBehaviors(). Override in subtypes.
- * Returns BT_SUCCESS, BT_FAILURE, or BT_RUNNING.
- */
+///Ticked by the ai_controller. Returns BT_SUCCESS, BT_FAILURE, or BT_RUNNING which can change how the parent responds.
 /datum/bt_node/proc/tick(datum/ai_controller/controller, seconds_per_tick)
+	SHOULD_NOT_SLEEP(TRUE)
 	return BT_FAILURE
 
-/// Resets tick timing and cached result for this node instance.
+/// Resets per-tick state for this node instance. Override in subtypes that hold tick state.
 /datum/bt_node/proc/reset_tick_state()
-	tick_cooldown = 0
-	tick_result = BT_FAILURE
+	return
 
 /// Resets this node and all of its descendants, cancelling any behaviors still running in the subtree.
 /datum/bt_node/proc/reset_subtree_tick_states()
@@ -75,16 +66,6 @@
 /datum/bt_node/proc/has_active_descendants()
 	return FALSE
 
-/// Short display label for this node, stripping standard path prefixes.
-/datum/bt_node/proc/get_label()
-	var/t = "[type]"
-	t = replacetext(t, "/datum/bt_node/decorator/", "")
-	t = replacetext(t, "/datum/bt_node/ai_behavior/", "")
-	t = replacetext(t, "/datum/ai_behavior/", "")
-	t = replacetext(t, "/datum/bt_node/subtree/", "")
-	t = replacetext(t, "/datum/ai_planning_subtree/", "")
-	return t
-
 /// Walks descendants to find the node with the given execution_index. Returns null if not found.
 /datum/bt_node/proc/find_by_index(target_index)
 	if(execution_index == target_index)
@@ -112,19 +93,17 @@
 
 /// Returns a single-character status marker for display. Overridden by ai_behavior to check running.
 /datum/bt_node/proc/get_status_marker()
-	if(tick_rate > 0)
-		if(world.time < tick_cooldown)
-			return "-"
-		if(tick_result == BT_SUCCESS)
-			return "+"
-		if(tick_result == BT_FAILURE)
-			return "x"
 	return "o"
 
 /// Appends this node's full tree state (status + label + children) to lines for display.
 /datum/bt_node/proc/append_full_tree_state(list/lines, indent)
-	lines += "[indent][get_status_marker()] [get_label()]"
+	lines += "[indent][get_status_marker()] [label]"
 
 /// Adds all children that must be visited during reset to to_visit. No-op for leaf nodes.
 /datum/bt_node/proc/collect_reset_children(list/to_visit)
 	return
+
+/datum/bt_node/Destroy()
+	parent_node = null
+	owning_controller = null
+	return ..()

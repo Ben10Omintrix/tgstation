@@ -1,7 +1,7 @@
 /**
  * Issues a spoken pet command and points at the target.
  * Requires a blackboard key holding a list of /datum/pet_command instances.
- * Use a cooldown decorator in the tree — time_between_perform has no effect on one-shot behaviors.
+ * Use a cooldown decorator in the tree  time_between_perform has no effect on one-shot behaviors.
  */
 /datum/bt_node/ai_behavior/issue_pet_command
 	/// Blackboard key holding a list of /datum/pet_command instances to search.
@@ -36,6 +36,6 @@
 	var/datum/pet_command/cmd = locate(command_type) in commands
 	if(isnull(cmd))
 		return AI_BEHAVIOR_DELAY | AI_BEHAVIOR_FAILED
-	living_pawn.say(pick(cmd.speech_commands), forced = "controller")
-	living_pawn._pointed(target)
+	INVOKE_ASYNC(living_pawn, TYPE_PROC_REF(/atom/movable, say), pick(cmd.speech_commands), forced = "controller")
+	INVOKE_ASYNC(living_pawn, TYPE_PROC_REF(/mob, _pointed), target)
 	return AI_BEHAVIOR_DELAY | AI_BEHAVIOR_SUCCEEDED

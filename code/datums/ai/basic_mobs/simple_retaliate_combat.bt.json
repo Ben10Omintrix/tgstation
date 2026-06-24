@@ -1,5 +1,11 @@
 {
 	"dm_type": "/datum/bt_node/subtree/simple_retaliate_combat",
+	"bindings": {
+		"b2jvnm5d": {
+			"label": "check_faction",
+			"default": "FALSE"
+		}
+	},
 	"type": "parallel",
 	"failure_policy": "BT_PARALLEL_FAILURE_CHILD_ONE",
 	"success_policy": "BT_PARALLEL_SUCCESS_CHILD_ONE",
@@ -61,19 +67,7 @@
 						},
 						{
 							"type": "subtree",
-							"subtype": "/datum/bt_node/subtree/move_to_and_eat"
-						},
-						{
-							"type": "subplan",
-							"success_policy": "BT_SUBPLAN_LOOP_ON_SUCCESS",
-							"failure_policy": "BT_SUBPLAN_FAIL_ON_FAILURE",
-							"loop_delay": "IDLE_BEHAVIOR_RATE",
-							"children": [
-								{
-									"type": "leaf",
-									"behavior": "/datum/bt_node/ai_behavior/idle_random_walk"
-								}
-							]
+							"subtype": "/datum/bt_node/subtree/random_walk"
 						}
 					]
 				}
@@ -85,7 +79,8 @@
 			"vars": {
 				"target_key": "BB_CURRENT_TARGET",
 				"targeting_strategy": "BB_TARGETING_STRATEGY",
-				"hiding_location_key": "BB_CURRENT_TARGET_HIDING_LOCATION"
+				"hiding_location_key": "BB_CURRENT_TARGET_HIDING_LOCATION",
+				"check_faction": "$b2jvnm5d"
 			}
 		}
 	]

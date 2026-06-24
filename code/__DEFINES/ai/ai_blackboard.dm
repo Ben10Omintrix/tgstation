@@ -10,6 +10,10 @@
 #define BB_CALL_REINFORCEMENTS_TARGET "Call reinforcements target"
 ///Generic target for hunting
 #define BB_HUNT_TARGET_LIST "Hunt Target List"
+///Target of current movement.alist
+#define BB_CURRENT_MOVEMENT_TARGET "Current target movement"
+///The pawn controlled by this controller
+#define BB_MY_PAWN "Literally me"
 
 ///Cooldown on venting (sus)
 #define BB_VENTING_COOLDOWN "Venting Cooldown"
@@ -98,6 +102,8 @@
 #define BB_LOW_PRIORITY_HUNTING_TARGET "BB_low_priority_hunting_target"
 ///key that holds the cooldown for our hunting subtree
 #define BB_HUNTING_COOLDOWN(type) "BB_HUNTING_COOLDOWN_[type]"
+///cooldown key for the cockroach's ant hunt
+#define BB_ROACH_HUNT_COOLDOWN "BB_roach_hunt_cooldown"
 ///cooldown key for the mouse's cheese hunt
 #define BB_MOUSE_CHEESE_HUNT_COOLDOWN "BB_mouse_cheese_hunt_cooldown"
 ///cooldown key for the mouse's cable hunt
@@ -258,6 +264,9 @@
 
 ///key that holds the next time we will start fishing
 #define BB_FISHING_TIMER "BB_fishing_timer"
+
+///key that holds the next time we will start drilling ice
+#define BB_ICE_DRILLING_TIMER "BB_ice_drilling_timer"
 
 ///are we ONLY allowed to fish when we're hungry?
 #define BB_ONLY_FISH_WHILE_HUNGRY "BB_only_fish_while_hungry"

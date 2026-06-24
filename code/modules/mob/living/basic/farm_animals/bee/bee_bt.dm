@@ -42,7 +42,7 @@
 		return AI_BEHAVIOR_DELAY | AI_BEHAVIOR_FAILED
 	if(!bee_pawn.Adjacent(home))
 		return AI_BEHAVIOR_DELAY | AI_BEHAVIOR_FAILED
-	controller.ai_interact(target = home, combat_mode = FALSE)
+	INVOKE_ASYNC(controller, TYPE_PROC_REF(/datum/ai_controller, ai_interact), home, FALSE)
 	return AI_BEHAVIOR_DELAY | AI_BEHAVIOR_SUCCEEDED
 
 /datum/bt_node/ai_behavior/inhabit_hive/finish_action(datum/ai_controller/controller, succeeded, ...)
@@ -93,7 +93,8 @@
 	controller.clear_blackboard_key(BB_TARGET_HYDRO)
 
 
-/// Swirls around BB_SWARM_TARGET, moving to random nearby turfs. Always returns RUNNING.
+/// Picks a random turf near BB_SWARM_TARGET and stores it in BB_SWIRL_TURF for move_to_target.
+/// Succeeds when a turf is found; fails otherwise so the parent sequence fails and retries.
 /datum/bt_node/ai_behavior/swirl_around_target
 	var/swirl_chance = 60
 
@@ -101,19 +102,21 @@
 	var/atom/target = controller.blackboard[BB_SWARM_TARGET]
 	var/mob/living/bee_pawn = controller.pawn
 	if(QDELETED(target))
-		return AI_BEHAVIOR_INSTANT | AI_BEHAVIOR_SUCCEEDED
+		return AI_BEHAVIOR_INSTANT | AI_BEHAVIOR_FAILED
 
 	if(!SPT_PROB(swirl_chance, seconds_per_tick))
-		return AI_BEHAVIOR_DELAY
+		return AI_BEHAVIOR_DELAY | AI_BEHAVIOR_FAILED
 
 	var/list/possible_turfs = list()
 	for(var/turf/possible_turf in oview(2, target))
 		if(!possible_turf.is_blocked_turf(source_atom = bee_pawn))
 			possible_turfs += possible_turf
 
-	if(length(possible_turfs))
-		controller.set_movement_target(src, pick(possible_turfs))
-	return AI_BEHAVIOR_DELAY
+	if(!length(possible_turfs))
+		return AI_BEHAVIOR_DELAY | AI_BEHAVIOR_FAILED
+
+	controller.set_blackboard_key(BB_SWIRL_TURF, pick(possible_turfs))
+	return AI_BEHAVIOR_INSTANT | AI_BEHAVIOR_SUCCEEDED
 
 
 /// Scatter command: runs away from BB_CURRENT_PET_TARGET then clears the command.

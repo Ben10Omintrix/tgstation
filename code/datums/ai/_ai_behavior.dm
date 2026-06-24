@@ -4,7 +4,7 @@
 /datum/bt_node/ai_behavior
 	///Flags for extra behavior (see AI_BEHAVIOR_* defines)
 	var/behavior_flags = NONE
-	///Cooldown between perform() calls; do not read directly — use get_cooldown()
+	///Cooldown between perform() calls; do not read directly  use get_cooldown()
 	var/time_between_perform = 0
 	/// TRUE after setup() has been called and before finish_action() completes.
 	var/running = FALSE
@@ -23,7 +23,7 @@
 
 /datum/bt_node/ai_behavior/append_active_nodes(list/lines, indent)
 	if(running)
-		lines += "[indent][span_bold("● [get_label()]")]"
+		lines += "[indent][span_bold("● [label]")]"
 
 /**
  * ai behavior tick. Runs setup() once on first activation, then perform() each tick.
@@ -37,7 +37,7 @@
 		controller.active_execution_index = execution_index
 		return BT_RUNNING
 
-	if(controller.bt_execution_log != null)
+	if(controller.bt_execution_log != null) // dont track if we're not  viewing
 		if(length(controller.bt_execution_log) < BT_EXECUTION_LOG_MAX)
 			controller.bt_execution_log += execution_index
 
@@ -75,6 +75,7 @@
 
 /// Called each tick while the behavior is running. Returns AI_BEHAVIOR_* flags.
 /datum/bt_node/ai_behavior/proc/perform(seconds_per_tick, datum/ai_controller/controller)
+	SHOULD_NOT_SLEEP(TRUE)
 	return
 
 /// Called when the behavior finishes (succeeded or failed). Subtypes should call ..().
@@ -90,37 +91,3 @@
 	if(running)
 		finish_action(owning_controller, FALSE)
 	..()
-
-// DEPRECATED — port behaviors to /datum/bt_node/ai_behavior
-// Vars and proc stubs are required so subtype overrides still compile.
-/datum/ai_behavior
-	var/required_distance = 1
-	var/behavior_flags = NONE
-	var/time_between_perform = CLICK_CD_MELEE
-
-/datum/ai_behavior/proc/setup(datum/ai_controller/controller, ...)
-	return TRUE
-
-/datum/ai_behavior/proc/perform(seconds_per_tick, datum/ai_controller/controller, ...)
-	return
-
-/datum/ai_behavior/proc/finish_action(datum/ai_controller/controller, succeeded, ...)
-	return
-
-// DEPRECATED — movement target tracking is no longer used by the BT system
-/datum/ai_behavior/proc/set_movement_target(datum/ai_controller/controller, atom/target, movement_type)
-	return
-
-/datum/ai_behavior/proc/clear_movement_target(datum/ai_controller/controller)
-	return
-
-// Compatibility shims so legacy ai_behavior subtypes ported via deprecated parent_type stubs
-// can still call set_movement_target / clear_movement_target without compile errors.
-/datum/bt_node/ai_behavior/proc/set_movement_target(datum/ai_controller/controller, atom/target, movement_type)
-	return
-
-/datum/bt_node/ai_behavior/proc/clear_movement_target(datum/ai_controller/controller)
-	return
-
-/datum/ai_behavior/proc/get_cooldown(datum/ai_controller/cooldown_for)
-	return time_between_perform

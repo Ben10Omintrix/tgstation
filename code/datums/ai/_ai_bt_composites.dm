@@ -7,6 +7,10 @@
 	/// Resolved child instances. Populated at tree construction. Do not set directly.
 	var/list/children = null
 
+/datum/bt_node/composite/Destroy()
+	QDEL_LIST(children)
+	return ..()
+
 /datum/bt_node/composite/get_children()
 	return children
 
@@ -56,13 +60,11 @@
  */
 /datum/bt_node/composite/sequence
 	node_type = BT_NODE_SEQUENCE
+	label = "SEQUENCE"
 	/// Index of the child that last returned BT_RUNNING.
 	var/running_child_index = 0
 
 /datum/bt_node/composite/sequence/tick(datum/ai_controller/controller, seconds_per_tick)
-	if(!should_tick())
-		return tick_result || BT_RUNNING
-
 	var/result = BT_SUCCESS
 	var/start = running_child_index || 1
 	for(var/i in start to length(children))
@@ -76,29 +78,20 @@
 				running_child_index = i
 			else
 				running_child_index = 0
-			if(tick_rate)
-				tick_cooldown = world.time
-				tick_result = result
 			return result
 
 	running_child_index = 0
-	if(tick_rate)
-		tick_cooldown = world.time
-		tick_result = result
 	return result
 
 /datum/bt_node/composite/sequence/reset_tick_state()
 	. = ..()
 	running_child_index = 0
 
-/datum/bt_node/composite/sequence/get_label()
-	return "SEQUENCE"
-
 /datum/bt_node/composite/sequence/append_active_nodes(list/lines, indent)
 	var/found_active = FALSE
 	for(var/datum/bt_node/child as anything in children)
 		if(found_active)
-			lines += "[indent]↑ [child.get_label()]"
+			lines += "[indent]↑ [child.label]"
 		else if(child.has_active_descendants())
 			found_active = TRUE
 			child.append_active_nodes(lines, indent)
@@ -119,13 +112,11 @@
  */
 /datum/bt_node/composite/selector
 	node_type = BT_NODE_SELECTOR
+	label = "SELECTOR"
 	/// Index of the child that last returned BT_RUNNING.
 	var/running_child_index = 0
 
 /datum/bt_node/composite/selector/tick(datum/ai_controller/controller, seconds_per_tick)
-	if(!should_tick())
-		return tick_result || BT_FAILURE
-
 	var/result = BT_FAILURE
 	var/start = running_child_index || 1
 	for(var/i in start to length(children))
@@ -139,23 +130,14 @@
 				running_child_index = i
 			else
 				running_child_index = 0
-			if(tick_rate)
-				tick_cooldown = world.time
-				tick_result = result
 			return result
 
 	running_child_index = 0
-	if(tick_rate)
-		tick_cooldown = world.time
-		tick_result = result
 	return result
 
 /datum/bt_node/composite/selector/reset_tick_state()
 	. = ..()
 	running_child_index = 0
-
-/datum/bt_node/composite/selector/get_label()
-	return "SELECTOR"
 
 /datum/bt_node/composite/selector/append_active_nodes(list/lines, indent)
 	for(var/datum/bt_node/child as anything in children)
@@ -174,14 +156,14 @@
  * when the child completes instead of propagating completion directly.
  *
  * success_policy:
- *   BT_SUBPLAN_SUCCEED_ON_SUCCESS (default) — propagates BT_SUCCESS when all children succeed.
- *   BT_SUBPLAN_LOOP_ON_SUCCESS              — resets all children and returns BT_RUNNING, restarting next tick.
+ *   BT_SUBPLAN_SUCCEED_ON_SUCCESS (default)  propagates BT_SUCCESS when all children succeed.
+ *   BT_SUBPLAN_LOOP_ON_SUCCESS               resets all children and returns BT_RUNNING, restarting next tick.
  *
  * failure_policy:
- *   BT_SUBPLAN_FAIL_ON_FAILURE (default) — propagates BT_FAILURE when a child fails.
- *   BT_SUBPLAN_LOOP_ON_FAILURE           — resets all children and returns BT_RUNNING, restarting next tick.
+ *   BT_SUBPLAN_FAIL_ON_FAILURE (default)  propagates BT_FAILURE when a child fails.
+ *   BT_SUBPLAN_LOOP_ON_FAILURE            resets all children and returns BT_RUNNING, restarting next tick.
  *
- * Combining both loop policies creates an infinite loop that only exits via an external observer abort or CancelActions(), so be careful pls
+ * Combining both loop policies creates an infinite loop that only exits via an external observer abort or cancel_current_plan(), so be careful pls
  */
 /datum/bt_node/composite/subplan
 	node_type = BT_NODE_SUBPLAN
@@ -195,21 +177,12 @@
 	var/next_loop_time = 0
 
 /datum/bt_node/composite/subplan/tick(datum/ai_controller/controller, seconds_per_tick)
-	if(!should_tick())
-		return tick_result || BT_RUNNING
-
 	if(loop_delay > 0 && next_loop_time > world.time)
-		if(tick_rate)
-			tick_cooldown = world.time
-			tick_result = BT_RUNNING
 		return BT_RUNNING
 
 	var/datum/bt_node/child = LAZYACCESS(children, 1)
 	if(isnull(child))
 		next_loop_time = 0
-		if(tick_rate)
-			tick_cooldown = world.time
-			tick_result = BT_FAILURE
 		return BT_FAILURE
 
 	var/child_result = child.tick(controller, seconds_per_tick)
@@ -217,39 +190,24 @@
 		return BT_FAILURE
 
 	if(child_result == BT_RUNNING)
-		if(tick_rate)
-			tick_cooldown = world.time
-			tick_result = BT_RUNNING
 		return BT_RUNNING
 
 	if(child_result == BT_FAILURE)
-		var/result
 		if(failure_policy == BT_SUBPLAN_LOOP_ON_FAILURE)
 			child.reset_tick_state()
 			if(loop_delay > 0)
 				next_loop_time = world.time + loop_delay
-			result = BT_RUNNING
-		else
-			next_loop_time = 0
-			result = BT_FAILURE
-		if(tick_rate)
-			tick_cooldown = world.time
-			tick_result = result
-		return result
+			return BT_RUNNING
+		next_loop_time = 0
+		return BT_FAILURE
 
-	var/result
 	if(success_policy == BT_SUBPLAN_LOOP_ON_SUCCESS)
 		child.reset_tick_state()
 		if(loop_delay > 0)
 			next_loop_time = world.time + loop_delay
-		result = BT_RUNNING
-	else
-		next_loop_time = 0
-		result = BT_SUCCESS
-	if(tick_rate)
-		tick_cooldown = world.time
-		tick_result = result
-	return result
+		return BT_RUNNING
+	next_loop_time = 0
+	return BT_SUCCESS
 
 /datum/bt_node/composite/subplan/reset_tick_state()
 	. = ..()
@@ -270,6 +228,7 @@
  */
 /datum/bt_node/composite/parallel
 	node_type = BT_NODE_PARALLEL
+	label = "PARALLEL"
 	/// BT_PARALLEL_SUCCESS_CHILD_ONE: succeed when child 1 succeeds (default).
 	/// BT_PARALLEL_SUCCESS_ALL: succeed only when all children succeed.
 	var/success_policy = BT_PARALLEL_SUCCESS_CHILD_ONE
@@ -286,9 +245,6 @@
 	var/finish_on_primary = FALSE
 
 /datum/bt_node/composite/parallel/tick(datum/ai_controller/controller, seconds_per_tick)
-	if(!should_tick())
-		return tick_result || BT_RUNNING
-
 	var/succeeded = 0
 	var/failed = 0
 	var/primary_result
@@ -326,32 +282,19 @@
 		for(var/i in 2 to length(children))
 			var/datum/bt_node/child = children[i]
 			child.reset_subtree_tick_states()
-		if(tick_rate)
-			tick_cooldown = world.time
-			tick_result = primary_result
 		return primary_result
 
-	var/result
 	if((failure_policy == BT_PARALLEL_FAILURE_CHILD_ONE && primary_result == BT_FAILURE) || \
 			(failure_policy == BT_PARALLEL_FAILURE_ANY && failed > 0))
-		result = BT_FAILURE
-	else if((success_policy == BT_PARALLEL_SUCCESS_CHILD_ONE && primary_result == BT_SUCCESS) || \
+		return BT_FAILURE
+	if((success_policy == BT_PARALLEL_SUCCESS_CHILD_ONE && primary_result == BT_SUCCESS) || \
 			(success_policy == BT_PARALLEL_SUCCESS_ALL && succeeded == length(children)))
-		result = BT_SUCCESS
-	else
-		result = BT_RUNNING
-
-	if(tick_rate)
-		tick_cooldown = world.time
-		tick_result = result
-	return result
+		return BT_SUCCESS
+	return BT_RUNNING
 
 /datum/bt_node/composite/parallel/reset_tick_state()
 	. = ..()
 	secondary_ready_at = null
-
-/datum/bt_node/composite/parallel/get_label()
-	return "PARALLEL"
 
 /datum/bt_node/composite/parallel/append_active_nodes(list/lines, indent)
 	for(var/datum/bt_node/child as anything in children)

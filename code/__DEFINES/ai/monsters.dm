@@ -66,12 +66,18 @@
 #define BB_TARGET_HYDRO "BB_target_hydro"
 ///key to swarm around
 #define BB_SWARM_TARGET "BB_swarm_target"
+///turf picked by swirl_around_target for move_to_target to path toward
+#define BB_SWIRL_TURF "BB_swirl_turf"
 ///key to indicate if the bee wants to go in or out of its hive.
 #define BB_WANTS_TO_TRANSITION_HIVE "BB_wants_to_transition_hive"
 
 // bear keys
 ///the hive with honey that we will steal from
 #define BB_FOUND_HONEY "BB_found_honey"
+///cooldown between hive raids
+#define BB_BEAR_HIVE_COOLDOWN "BB_bear_hive_cooldown"
+///cooldown between honeycomb hunts
+#define BB_BEAR_HONEYCOMB_COOLDOWN "BB_bear_honeycomb_cooldown"
 ///the tree that we will climb
 #define BB_CLIMBED_TREE "BB_climbed_tree"
 ///tree climbing cooldown
@@ -96,6 +102,8 @@
 #define BB_BLIND_TARGET "BB_blind_target"
 ///value to store the minimum eye damage to prevent us from attacking a human
 #define BB_EYE_DAMAGE_THRESHOLD "BB_eye_damage_threshold"
+///the turf in front of our target we move to so our glare lines up
+#define BB_GLARE_POSITION "BB_glare_position"
 
 // hivebot keys
 ///the machine we must go to repair
@@ -114,6 +122,10 @@
 #define BB_TARGET_CANNIBAL "BB_target_cannibal"
 ///the tree we will burn down
 #define BB_TARGET_TREE "BB_target_tree"
+///cooldown key for sculpting statues
+#define BB_WHELP_SCULPT_COOLDOWN "BB_whelp_sculpt_cooldown"
+///cooldown key for burning trees
+#define BB_WHELP_BURN_COOLDOWN "BB_whelp_burn_cooldown"
 
 // Regal Rats
 /// The rat's ability to corrupt an area.
@@ -146,6 +158,8 @@
 #define BB_BOULDER_TARGET "BB_boulder_target"
 /// key that holds the ore_vent we will harvest boulders from
 #define BB_VENT_TARGET "BB_vent_target"
+/// Prevent us from strip-mining Lavaland lol
+#define BB_MINING_COOLDOWN "Mining Cooldown"
 
 // minebot keys
 /// key that stores our toggle light ability
@@ -180,6 +194,8 @@
 #define BB_MINEBOT_REPAIR_DRONE "minebot_repair_drone"
 ///should we plant mines?
 #define BB_MINEBOT_PLANT_MINES "minebot_plant_mines"
+///should we plant mines?
+#define BB_MINEBOT_CRIT_ALERT_COOLDOWN "minebot callcrit cooldown"
 
 //seedling keys
 /// the water can we will pick up
@@ -271,7 +287,7 @@
 #define BB_SWIM_ALTERNATE_TURF "swim_alternate_turf"
 ///key holds our state of swimming
 #define BB_CURRENTLY_SWIMMING "currently_swimming"
-///key holds how long we will be swimming for
+///Time between swims
 #define BB_KEY_SWIMMER_COOLDOWN "key_swimmer_cooldown"
 //Wizard AI keys
 /// Key where we store our main targeted spell

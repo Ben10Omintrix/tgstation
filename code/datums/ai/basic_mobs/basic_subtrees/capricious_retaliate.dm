@@ -1,6 +1,6 @@
 ///Random chance to add things to our retaliate list
 /datum/bt_node/ai_behavior/capricious_retaliate
-	var/targeting_strategy
+	var/targeting_strategy = BB_TARGETING_STRATEGY
 	var/ignore_faction
 	time_between_perform = 1 SECONDS
 
@@ -43,7 +43,7 @@
 		failed_targeting(pawn)
 		return AI_BEHAVIOR_DELAY | AI_BEHAVIOR_FAILED
 
-	// Add to shitlist — set_blackboard_key_assoc_lazylist calls post_blackboard_key_set, waking the combat branch
+	// Add to shitlist  set_blackboard_key_assoc_lazylist calls post_blackboard_key_set, waking the combat branch
 	controller.set_blackboard_key_assoc_lazylist(BB_BASIC_MOB_RETALIATE_LIST, final_target, world.time)
 	pawn.visible_message(span_warning("[pawn] glares grumpily at [final_target]!"))
 	return AI_BEHAVIOR_DELAY | AI_BEHAVIOR_SUCCEEDED

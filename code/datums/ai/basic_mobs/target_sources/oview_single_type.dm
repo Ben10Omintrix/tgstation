@@ -21,6 +21,9 @@
 /datum/target_source/oview_single_type/disposal_unit
 	single_typepath = /obj/machinery/disposal
 
+/datum/target_source/oview_single_type/paper
+	single_typepath = /obj/item/paper
+
 /datum/target_source/oview_single_type/watering_can
 	single_typepath = /obj/item/reagent_containers/cup/watering_can
 
@@ -54,6 +57,9 @@
 /datum/target_source/oview_single_type/raptor_trough
 	single_typepath = /obj/structure/ore_container/food_trough/raptor_trough
 
+/datum/target_source/oview_single_type/gutlunch_trough
+	single_typepath = /obj/structure/ore_container/food_trough/gutlunch_trough
+
 /datum/target_source/oview_single_type/mouse
 	single_typepath = /mob/living/basic/mouse
 
@@ -74,3 +80,49 @@
 
 /datum/target_source/oview_single_type/piano_synth
 	single_typepath = /obj/item/instrument/piano_synth
+
+/datum/target_source/oview_single_type/orbie
+	single_typepath = /mob/living/basic/orbie
+
+/datum/target_source/oview_single_type/ore_vent
+	single_typepath = /obj/structure/ore_vent
+
+/datum/target_source/oview_single_type/mushroom_food
+	single_typepath = /obj/item/food/grown/mushroom
+
+/datum/target_source/oview_single_type/ore
+	single_typepath = /obj/item/stack/ore
+
+/datum/target_source/oview_single_type/minebot_target
+	single_typepath = /obj/effect/temp_visual/minebot_target
+
+/datum/target_source/oview_single_type/node_drone
+	single_typepath = /mob/living/basic/node_drone
+
+/datum/target_source/oview_single_type/icy_rock
+	single_typepath = /obj/structure/flora/rock/icy
+
+/datum/target_source/oview_single_type/ice_whelp
+	single_typepath = /mob/living/basic/mining/ice_whelp
+
+/datum/target_source/oview_single_type/hivebot
+	single_typepath = /mob/living/basic/hivebot
+
+/datum/target_source/oview_single_type/carrot
+	single_typepath = /obj/item/food/grown/carrot
+
+/datum/target_source/oview_single_type/ants
+	single_typepath = /obj/effect/decal/cleanable/ants
+
+/datum/target_source/oview_single_type/cat_house
+	single_typepath = /obj/structure/cat_house
+
+/datum/target_source/oview_single_type/honeycomb
+	single_typepath = /obj/item/food/honeycomb
+
+/datum/target_source/oview_single_type/kitten
+	single_typepath = /mob/living/basic/pet/cat/kitten
+
+/// Gathers nearby deer (alive or dead).
+/datum/target_source/oview_single_type/deer_animals
+	single_typepath = /mob/living/basic/deer

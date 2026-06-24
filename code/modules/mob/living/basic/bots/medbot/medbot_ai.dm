@@ -1,6 +1,6 @@
 #define BOT_PATIENT_PATH_LIMIT 20
 
-/// Find and treat a patient — used by both the speak-mode parallel and the silent fallback branch.
+/// Find and treat a patient  used by both the speak-mode parallel and the silent fallback branch.
 /datum/bt_node/subtree/medbot_treat_patient
 	behavior_tree_json = "code/modules/mob/living/basic/bots/medbot/medbot_treat_patient.bt.json"
 
@@ -125,7 +125,6 @@
 /datum/bt_node/ai_behavior/handle_medbot_speech
 	var/announce_key
 	time_between_perform = 20 SECONDS
-	behavior_flags = AI_BEHAVIOR_CAN_PLAN_DURING_EXECUTION
 
 /datum/bt_node/ai_behavior/handle_medbot_speech/perform(seconds_per_tick, datum/ai_controller/controller)
 	var/mob/living/basic/bot/medbot/bot_pawn = controller.pawn
@@ -151,7 +150,7 @@
 
 
 
-/// Valid if the patient is at least unconscious, has a mind, and is visible — used to announce medical emergencies.
+/// Valid if the patient is at least unconscious, has a mind, and is visible  used to announce medical emergencies.
 /datum/targeting_strategy/crit_patient/is_valid_target(mob/living/living_mob, atom/target, vision_range, datum/ai_controller/controller = null)
 	. = ..()
 	if(!.)
@@ -164,7 +163,6 @@
 /datum/bt_node/ai_behavior/announce_patient
 	var/target_key
 	time_between_perform = 3 MINUTES
-	behavior_flags = AI_BEHAVIOR_CAN_PLAN_DURING_EXECUTION
 
 /datum/bt_node/ai_behavior/announce_patient/perform(seconds_per_tick, datum/ai_controller/basic_controller/bot/controller)
 	var/mob/living/living_target = controller.blackboard[target_key]

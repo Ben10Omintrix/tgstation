@@ -24,7 +24,15 @@
 	var/last_poll_result = null
 	/// TRUE when this decorator is registered in the controller's polling_observers list.
 	var/is_polled = FALSE
+	/// When polling (no observer signals), minimum deciseconds between condition re-evaluations. 0 = every controller tick. Please don't run viewers() every tick bro.
+	var/polling_rate = 0
+	/// world.time of the last poll_condition() evaluation. Only meaningful when polling_rate > 0.
+	VAR_PRIVATE/last_poll_time = 0
 
+
+/datum/bt_node/decorator/Destroy()
+	QDEL_NULL(child)
+	return ..()
 
 /datum/bt_node/decorator/get_children()
 	return child ? list(child) : null
@@ -40,7 +48,7 @@
 
 /datum/bt_node/decorator/append_active_nodes(list/lines, indent)
 	if(child && child.has_active_descendants())
-		lines += "[indent][get_label()]"
+		lines += "[indent][label]"
 		child.append_active_nodes(lines, "[indent]  ")
 
 /datum/bt_node/decorator/set_descriptor_children(list/children_descs, datum/ai_controller/controller)
@@ -63,14 +71,11 @@
 		else if(observer_abort == BT_ABORT_BOTH)
 			abort_name = "BOTH"
 		observer_text = " (abort-[abort_name])"
-	lines += "[indent][get_status_marker()] [get_label()][observer_text]"
+	lines += "[indent][get_status_marker()] [label][observer_text]"
 	if(child)
 		child.append_full_tree_state(lines, "[indent]  ")
 
 /datum/bt_node/decorator/tick(datum/ai_controller/controller, seconds_per_tick)
-	if(!should_tick())
-		return tick_result || BT_FAILURE
-
 	if(!observers_registered)
 		observers_registered = TRUE
 		if(observer_abort != BT_ABORT_NONE)
@@ -102,9 +107,6 @@
 		if(child_ticked && !child_active)
 			on_child_complete(controller, result)
 
-	if(tick_rate)
-		tick_cooldown = world.time
-		tick_result = result
 	return result
 
 /**
@@ -138,6 +140,9 @@
 /// Called by the controller's polling loop for decorators that have no signal observers.
 /// Sets a baseline on first call, then fires on_observed_change() only when the result changes.
 /datum/bt_node/decorator/proc/poll_condition(datum/ai_controller/controller)
+	if(polling_rate && last_poll_time + polling_rate > world.time)
+		return
+	last_poll_time = world.time
 	var/current = evaluate_for_observer(controller)
 	if(last_poll_result == null)
 		last_poll_result = current
@@ -152,14 +157,14 @@
 	if(!condition_result && (observer_abort & BT_ABORT_SELF))
 		var/active = controller.active_execution_index
 		if(!execution_index || (active >= execution_index && active <= last_execution_index))
-			EVLOG_TEXT(controller, EVLOG_CATEGORY_AI_DECISIONMAKING, "[controller.pawn] [type]: ABORT_SELF on key=[key] — condition lost, replanning")
-			controller.CancelActions()
+			EVLOG_TEXT(controller, EVLOG_CATEGORY_AI_DECISIONMAKING, "[controller.pawn] [type]: ABORT_SELF on key=[key]  condition lost, replanning")
+			controller.cancel_current_plan()
 
 	if(condition_result && (observer_abort & BT_ABORT_LOWER_PRIORITY))
 		var/active = controller.active_execution_index
 		if(!execution_index || !active || active > last_execution_index)
-			EVLOG_TEXT(controller, EVLOG_CATEGORY_AI_DECISIONMAKING, "[controller.pawn] [type]: ABORT_LOWER on key=[key] — condition gained, replanning")
-			controller.CancelActions()
+			EVLOG_TEXT(controller, EVLOG_CATEGORY_AI_DECISIONMAKING, "[controller.pawn] [type]: ABORT_LOWER on key=[key]  condition gained, replanning")
+			controller.cancel_current_plan()
 
 /datum/bt_node/decorator/reset_tick_state()
 	if(observers_registered)
@@ -170,6 +175,7 @@
 		observers_registered = FALSE
 		has_observer_signals = FALSE
 	last_poll_result = null
+	last_poll_time = 0
 	child_active = FALSE
 	..()
 
@@ -202,7 +208,6 @@
 
 /// Gates on whether the named override slot currently has an active override installed.
 /// Observes COMSIG_AI_OVERRIDE_SLOT_CHANGED so it reacts immediately when a command is set or cleared.
-/// Use with observer_abort = BT_ABORT_LOWER_PRIORITY to preempt idle behaviour when a command arrives.
 /datum/bt_node/decorator/override_id_set
 	/// SUBPLAN_ID_* constant matching the override slot to watch.
 	var/override_id = null

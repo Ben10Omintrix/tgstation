@@ -19,22 +19,29 @@
 	controller.set_blackboard_key(BB_CURRENT_MIN_MOVE_DISTANCE, min_distance)
 	moving_controllers[controller] = current_movement_target
 	SEND_SIGNAL(controller.pawn, COMSIG_MOB_AI_MOVEMENT_STARTED, current_movement_target)
+	controller.set_blackboard_key(BB_CURRENT_MOVEMENT_TARGET, current_movement_target)
 	return TRUE
 
 /datum/ai_movement/proc/update_movement_target(datum/ai_controller/controller, atom/new_target)
 	moving_controllers[controller] = new_target
+	controller.set_blackboard_key(BB_CURRENT_MOVEMENT_TARGET, new_target)
 
 /datum/ai_movement/proc/stop_moving_towards(datum/ai_controller/controller)
 	controller.consecutive_pathing_attempts = 0
 	moving_controllers -= controller
 	// We got deleted as we finished an action
+	controller.clear_blackboard_key(BB_CURRENT_MOVEMENT_TARGET)
 	if(!QDELETED(controller.pawn))
 		GLOB.move_manager.stop_looping(controller.pawn, SSai_movement)
 
 /datum/ai_movement/proc/increment_pathing_failures(datum/ai_controller/controller)
 	controller.consecutive_pathing_attempts++
 	if(controller.consecutive_pathing_attempts >= max_pathing_attempts)
-		SEND_SIGNAL(controller.pawn, COMSIG_MOB_AI_MOVEMENT_FAILED, moving_controllers[controller])
+		fail_movement(controller)
+
+/datum/ai_movement/proc/fail_movement(datum/ai_controller/controller)
+	stop_moving_towards(controller)
+	SEND_SIGNAL(controller.pawn, COMSIG_MOB_AI_MOVEMENT_FAILED, moving_controllers[controller])
 
 /datum/ai_movement/proc/reset_pathing_failures(datum/ai_controller/controller)
 	controller.consecutive_pathing_attempts = 0

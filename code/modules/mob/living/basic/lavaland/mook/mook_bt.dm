@@ -20,12 +20,6 @@
 		return FALSE
 	return ..()
 
-///find the chief. why we dont do this in the basic mob? dont ask me.
-/datum/bt_node/ai_behavior/find_and_set/find_chief
-
-/datum/bt_node/ai_behavior/find_and_set/find_chief/search_tactic(datum/ai_controller/controller, locate_path, search_range = SEARCH_TACTIC_DEFAULT_RANGE)
-	return locate(/mob/living/basic/mining/mook/worker/tribal_chief) in oview(search_range, controller.pawn)
-
 ///Wander in a random direction to find ore
 /datum/bt_node/ai_behavior/calculate_wander_destination
 	/// Blackboard key holding the anchor atom to wander away from.
@@ -88,12 +82,17 @@
 	var/atom/stand = controller.blackboard[stand_key]
 	if(QDELETED(stand))
 		return AI_BEHAVIOR_DELAY | AI_BEHAVIOR_FAILED
-	for(var/direction in list(SOUTH, SOUTHEAST))
+	var/mob/living/pawn = controller.pawn
+	var/list/candidates = list()
+	for(var/direction in list(SOUTH, SOUTHWEST, SOUTHEAST))
 		var/turf/candidate = get_step(stand, direction)
 		if(!candidate.is_blocked_turf())
-			controller.set_blackboard_key(destination_key, candidate)
-			return AI_BEHAVIOR_DELAY | AI_BEHAVIOR_SUCCEEDED
-	return AI_BEHAVIOR_DELAY | AI_BEHAVIOR_FAILED
+			candidates += candidate
+	var/turf/destination = get_closest_atom(/turf/, candidates, pawn)
+	if(isnull(destination))
+		return AI_BEHAVIOR_DELAY | AI_BEHAVIOR_FAILED
+	controller.set_blackboard_key(destination_key, destination)
+	return AI_BEHAVIOR_DELAY | AI_BEHAVIOR_SUCCEEDED
 
 ///OH SHIT STORM COMING (or maybe we found ore :3)
 /datum/bt_node/decorator/mook_has_flee_reason
@@ -119,39 +118,39 @@
 
 
 /datum/bt_node/subtree/generic_mook_behavior
-	behavior_tree_json = "generic_mook_behavior.bt.json"
+	behavior_tree_json = "code/modules/mob/living/basic/lavaland/mook/generic_mook_behavior.bt.json"
 
 
 ///Worker trees
 /datum/bt_node/subtree/worker_find_targets
-	behavior_tree_json = "worker_find_targets.bt.json"
+	behavior_tree_json = "code/modules/mob/living/basic/lavaland/mook/worker_find_targets.bt.json"
 
 /datum/bt_node/subtree/go_mining
-	behavior_tree_json = "go_mining.bt.json"
+	behavior_tree_json = "code/modules/mob/living/basic/lavaland/mook/go_mining.bt.json"
 
 
 ///Bard trees
 /datum/bt_node/subtree/bard_play_music
-	behavior_tree_json = "bard_play_music.bt.json"
+	behavior_tree_json = "code/modules/mob/living/basic/lavaland/mook/bard_play_music.bt.json"
 
 /datum/bt_node/subtree/bard_find_targets
-	behavior_tree_json = "bard_find_targets.bt.json"
+	behavior_tree_json = "code/modules/mob/living/basic/lavaland/mook/bard_find_targets.bt.json"
 
 
 ///Support trees
 /datum/bt_node/subtree/heal_injured
-	behavior_tree_json = "heal_injured.bt.json"
+	behavior_tree_json = "code/modules/mob/living/basic/lavaland/mook/heal_injured.bt.json"
 
 /datum/bt_node/subtree/support_find_targets
-	behavior_tree_json = "support_find_targets.bt.json"
+	behavior_tree_json = "code/modules/mob/living/basic/lavaland/mook/support_find_targets.bt.json"
 
 ///Chief trees
 /datum/bt_node/subtree/chief_issue_commands
-	behavior_tree_json = "chief_issue_commands.bt.json"
+	behavior_tree_json = "code/modules/mob/living/basic/lavaland/mook/chief_issue_commands.bt.json"
 
 /datum/bt_node/subtree/chief_manage_village
-	behavior_tree_json = "chief_manage_village.bt.json"
+	behavior_tree_json = "code/modules/mob/living/basic/lavaland/mook/chief_manage_village.bt.json"
 
 
 /datum/bt_node/subtree/chief_find_targets
-	behavior_tree_json = "chief_find_targets.bt.json"
+	behavior_tree_json = "code/modules/mob/living/basic/lavaland/mook/chief_find_targets.bt.json"
