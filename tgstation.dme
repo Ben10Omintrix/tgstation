@@ -1064,6 +1064,7 @@
 #include "code\datums\ai\cursed\cursed_controller.dm"
 #include "code\datums\ai\dog\dog_bt.dm"
 #include "code\datums\ai\dog\dog_controller.dm"
+#include "code\datums\ai\generic_behaviors\acquire_injured_target.dm"
 #include "code\datums\ai\generic_behaviors\acquire_target.dm"
 #include "code\datums\ai\generic_behaviors\ai_interact.dm"
 #include "code\datums\ai\generic_behaviors\attack_obstacles.dm"

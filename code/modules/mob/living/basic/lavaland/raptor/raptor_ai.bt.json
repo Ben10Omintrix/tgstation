@@ -1,30 +1,191 @@
 {
-	"dm_type": "/datum/ai_controller/basic_controller/baby_raptor",
+	"dm_type": "/datum/ai_controller/basic_controller/raptor",
 	"type": "selector",
 	"children": [
 		{
-			"type": "decorator",
-			"decorator": "/datum/bt_node/decorator/is_in_vent",
-			"child": {
-				"type": "leaf",
-				"behavior": "/datum/bt_node/ai_behavior/exit_vent"
-			}
+			"type": "subtree",
+			"subtype": "/datum/bt_node/subtree/escape_captivity"
 		},
 		{
-			"type": "decorator",
-			"decorator": "/datum/bt_node/decorator/cooldown",
-			"vars": {
-				"cooldown_key": "BB_VENTING_COOLDOWN"
-			},
-			"child": {
-				"type": "sequence",
-				"children": [
-					{
+			"type": "subtree",
+			"subtype": "",
+			"override_id": "SUBPLAN_ID_PET_COMMAND"
+		},
+		{
+			"type": "subtree",
+			"subtype": "/datum/bt_node/subtree/raptor_flee"
+		},
+		{
+			"type": "parallel",
+			"failure_policy": "BT_PARALLEL_FAILURE_CHILD_ONE",
+			"success_policy": "BT_PARALLEL_SUCCESS_CHILD_ONE",
+			"repeat_secondary": false,
+			"finish_on_primary": false,
+			"children": [
+				{
+					"type": "selector",
+					"children": [
+						{
+							"type": "subtree",
+							"subtype": "/datum/bt_node/subtree/raptor_heal_injured"
+						},
+						{
+							"type": "parallel",
+							"failure_policy": "BT_PARALLEL_FAILURE_CHILD_ONE",
+							"success_policy": "BT_PARALLEL_SUCCESS_CHILD_ONE",
+							"repeat_secondary": false,
+							"finish_on_primary": false,
+							"children": [
+								{
+									"type": "subplan",
+									"success_policy": "BT_SUBPLAN_SUCCEED_ON_SUCCESS",
+									"failure_policy": "BT_SUBPLAN_FAIL_ON_FAILURE",
+									"children": [
+										{
+											"type": "leaf",
+											"behavior": "/datum/bt_node/ai_behavior/basic_melee_attack",
+											"vars": {
+												"target_key": "BB_CURRENT_TARGET"
+											}
+										}
+									]
+								},
+								{
+									"type": "leaf",
+									"behavior": "/datum/bt_node/ai_behavior/move_to_target",
+									"vars": {
+										"target_key": "BB_CURRENT_TARGET"
+									}
+								}
+							]
+						},
+						{
+							"type": "subtree",
+							"subtype": "/datum/bt_node/subtree/raptor_food_trough"
+						},
+						{
+							"type": "subtree",
+							"subtype": "/datum/bt_node/subtree/random_speech_loop"
+						},
+						{
+							"type": "decorator",
+							"decorator": "/datum/bt_node/decorator/bb_key_set",
+							"vars": {
+								"key": "BB_OWNER_TARGET"
+							},
+							"child": {
+								"type": "sequence",
+								"children": [
+									{
+										"type": "leaf",
+										"behavior": "/datum/bt_node/ai_behavior/move_to_target",
+										"vars": {
+											"target_key": "BB_OWNER_TARGET"
+										}
+									},
+									{
+										"type": "leaf",
+										"behavior": "/datum/bt_node/ai_behavior/hunt_target/play_with_owner",
+										"vars": {
+											"target_key": "BB_OWNER_TARGET"
+										}
+									}
+								]
+							}
+						},
+						{
+							"type": "subtree",
+							"subtype": "/datum/bt_node/subtree/care_for_young"
+						}
+					]
+				},
+				{
+					"type": "subtree",
+					"subtype": "/datum/bt_node/subtree/raptor_find_food"
+				},
+				{
+					"type": "decorator",
+					"decorator": "/datum/bt_node/decorator/bb_key_true",
+					"vars": {
+						"key": "BB_RAPTOR_PLAYFUL"
+					},
+					"child": {
 						"type": "leaf",
-						"behavior": "/datum/bt_node/ai_behavior/enter_vent"
+						"behavior": "/datum/bt_node/ai_behavior/acquire_target",
+						"vars": {
+							"target_key": "BB_OWNER_TARGET",
+							"targeting_strategy": "/datum/targeting_strategy/ally_mob"
+						}
 					}
-				]
-			}
+				},
+				{
+					"type": "decorator",
+					"decorator": "/datum/bt_node/decorator/bb_key_true",
+					"vars": {
+						"key": "BB_BASIC_MOB_HEALER"
+					},
+					"child": {
+						"type": "parallel",
+						"failure_policy": "BT_PARALLEL_FAILURE_CHILD_ONE",
+						"success_policy": "BT_PARALLEL_SUCCESS_CHILD_ONE",
+						"repeat_secondary": false,
+						"finish_on_primary": false,
+						"children": [
+							{
+								"type": "leaf",
+								"behavior": "/datum/bt_node/ai_behavior/acquire_target",
+								"vars": {
+									"target_key": "BB_INJURED_RAPTOR",
+									"targeting_strategy": "BB_INJURED_RAPTOR"
+								}
+							},
+							{
+								"type": "leaf",
+								"behavior": "/datum/bt_node/ai_behavior/retrieve_injured_target",
+								"vars": {
+									"target_key": "BB_INJURED_RAPTOR"
+								}
+							}
+						]
+					}
+				},
+				{
+					"type": "decorator",
+					"decorator": "/datum/bt_node/decorator/bb_key_true",
+					"vars": {
+						"key": "BB_RAPTOR_MOTHERLY"
+					},
+					"child": {
+						"type": "leaf",
+						"behavior": "/datum/bt_node/ai_behavior/acquire_target",
+						"vars": {
+							"target_key": "BB_RAPTOR_BABY",
+							"targeting_strategy": "/datum/target_strategy/baby_raptor"
+						}
+					}
+				},
+				{
+					"type": "selector",
+					"children": [
+						{
+							"type": "leaf",
+							"behavior": "/datum/bt_node/ai_behavior/acquire_target/update_combat_targets",
+							"vars": {
+								"target_key": "BB_CURRENT_TARGET",
+								"hiding_location_key": "BB_CURRENT_TARGET_HIDING_LOCATION"
+							}
+						},
+						{
+							"type": "leaf",
+							"behavior": "/datum/bt_node/ai_behavior/acquire_target/target_from_retaliate_list",
+							"vars": {
+								"target_key": "BB_CURRENT_TARGET",
+								"hiding_location_key": "BB_CURRENT_TARGET_HIDING_LOCATION"
+							}
+						}
+					]
+				}
+			]
 		}
 	]
 }

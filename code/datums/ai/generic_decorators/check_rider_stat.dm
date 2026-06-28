@@ -7,5 +7,5 @@
 	var/mob/living/living_pawn = controller.pawn
 	if(!length(living_pawn.buckled_mobs))
 		return FALSE
-	var/mob/living/buckled_to = raptor.buckled_mobs[1]
+	var/mob/living/buckled_to = living_pawn.buckled_mobs[1]
 	return buckled_to.stat == target_stat

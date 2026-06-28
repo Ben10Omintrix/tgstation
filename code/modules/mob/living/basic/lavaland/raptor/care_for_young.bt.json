@@ -1,0 +1,35 @@
+{
+	"dm_type": "/datum/ai_controller/basic_controller/raptor/aggressive",
+	"type": "decorator",
+	"decorator": "/datum/bt_node/decorator/bb_key_set",
+	"vars": {
+		"key": "BB_RAPTOR_BABY"
+	},
+	"child": {
+		"type": "sequence",
+		"children": [
+			{
+				"type": "leaf",
+				"behavior": "/datum/bt_node/ai_behavior/move_to_target",
+				"vars": {
+					"target_key": "BB_RAPTOR_BABY"
+				}
+			},
+			{
+				"type": "leaf",
+				"behavior": "/datum/bt_node/ai_behavior/ai_interact",
+				"vars": {
+					"target_key": "BB_RAPTOR_BABY",
+					"combat_mode": false
+				}
+			},
+			{
+				"type": "leaf",
+				"behavior": "/datum/bt_node/ai_behavior/perform_emote",
+				"vars": {
+					"emote": "\"grooms its baby!\""
+				}
+			}
+		]
+	}
+}

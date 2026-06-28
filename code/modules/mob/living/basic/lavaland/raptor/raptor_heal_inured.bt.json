@@ -1,0 +1,35 @@
+{
+	"dm_type": "/datum/ai_controller/basic_controller/baby_raptor",
+	"type": "decorator",
+	"decorator": "/datum/bt_node/decorator/bb_key_set",
+	"vars": {
+		"key": "BB_INJURED_RAPTOR"
+	},
+	"child": {
+		"type": "sequence",
+		"children": [
+			{
+				"type": "leaf",
+				"behavior": "/datum/bt_node/ai_behavior/move_to_target",
+				"vars": {
+					"target_key": "BB_INJURED_RAPTOR"
+				}
+			},
+			{
+				"type": "leaf",
+				"behavior": "/datum/bt_node/ai_behavior/ai_interact",
+				"vars": {
+					"target_key": "BB_INJURED_RAPTOR",
+					"combat_mode": false
+				}
+			},
+			{
+				"type": "leaf",
+				"behavior": "/datum/bt_node/ai_behavior/clear_key",
+				"vars": {
+					"key": "BB_INJURED_RAPTOR"
+				}
+			}
+		]
+	}
+}
