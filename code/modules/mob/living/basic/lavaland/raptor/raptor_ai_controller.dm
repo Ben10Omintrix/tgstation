@@ -18,7 +18,6 @@
 /// Angry raptors with no faction check on retaliation
 /datum/ai_controller/basic_controller/raptor/aggressive
 	ai_movement = /datum/ai_movement/basic_avoidance
-	behavior_tree_json = "code/modules/mob/living/basic/lavaland/raptor/raptor_ai.bt.json"
 	blackboard = list(
 		BB_INTERACTIONS_WITH_OWNER = list(
 			"pecks",
