@@ -1,8 +1,9 @@
 {
-	"dm_type": "/datum/ai_controller/basic_controller/baby_raptor",
+	"dm_type": "/datum/bt_node/subtree/raptor_food_trough",
 	"type": "decorator",
 	"decorator": "/datum/bt_node/decorator/bb_key_set",
 	"vars": {
+		"observer_abort": "BT_ABORT_SELF",
 		"key": "BB_RAPTOR_TROUGH_TARGET"
 	},
 	"child": {
@@ -12,7 +13,7 @@
 				"type": "leaf",
 				"behavior": "/datum/bt_node/ai_behavior/move_to_target",
 				"vars": {
-					"target_key": "BB_INJURED_RAPTOR",
+					"target_key": "BB_RAPTOR_TROUGH_TARGET",
 					"movement_type": "BB_RAPTOR_TROUGH_TARGET"
 				}
 			},

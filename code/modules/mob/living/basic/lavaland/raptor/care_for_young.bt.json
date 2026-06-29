@@ -1,8 +1,9 @@
 {
-	"dm_type": "/datum/ai_controller/basic_controller/raptor/aggressive",
+	"dm_type": "/datum/bt_node/subtree/care_for_young",
 	"type": "decorator",
 	"decorator": "/datum/bt_node/decorator/bb_key_set",
 	"vars": {
+		"observer_abort": "BT_ABORT_SELF",
 		"key": "BB_RAPTOR_BABY"
 	},
 	"child": {

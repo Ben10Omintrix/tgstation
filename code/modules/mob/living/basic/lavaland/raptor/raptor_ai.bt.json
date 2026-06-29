@@ -8,7 +8,7 @@
 		},
 		{
 			"type": "subtree",
-			"subtype": "",
+			"subtype": "/datum/bt_node/subtree",
 			"override_id": "SUBPLAN_ID_PET_COMMAND"
 		},
 		{
@@ -19,8 +19,9 @@
 			"type": "parallel",
 			"failure_policy": "BT_PARALLEL_FAILURE_CHILD_ONE",
 			"success_policy": "BT_PARALLEL_SUCCESS_CHILD_ONE",
-			"repeat_secondary": false,
-			"finish_on_primary": false,
+			"repeat_secondary": true,
+			"repeat_secondary_delay": "BASIC_MOB_FIND_TARGET_RATE",
+			"finish_on_primary": true,
 			"children": [
 				{
 					"type": "selector",
@@ -30,34 +31,46 @@
 							"subtype": "/datum/bt_node/subtree/raptor_heal_injured"
 						},
 						{
-							"type": "parallel",
-							"failure_policy": "BT_PARALLEL_FAILURE_CHILD_ONE",
-							"success_policy": "BT_PARALLEL_SUCCESS_CHILD_ONE",
-							"repeat_secondary": false,
-							"finish_on_primary": false,
-							"children": [
-								{
-									"type": "subplan",
-									"success_policy": "BT_SUBPLAN_SUCCEED_ON_SUCCESS",
-									"failure_policy": "BT_SUBPLAN_FAIL_ON_FAILURE",
-									"children": [
-										{
-											"type": "leaf",
-											"behavior": "/datum/bt_node/ai_behavior/basic_melee_attack",
-											"vars": {
-												"target_key": "BB_CURRENT_TARGET"
+							"type": "decorator",
+							"decorator": "/datum/bt_node/decorator/bb_key_set",
+							"vars": {
+								"observer_abort": "BT_ABORT_BOTH",
+								"key": "BB_CURRENT_TARGET"
+							},
+							"child": {
+								"type": "parallel",
+								"failure_policy": "BT_PARALLEL_FAILURE_CHILD_ONE",
+								"success_policy": "BT_PARALLEL_SUCCESS_CHILD_ONE",
+								"repeat_secondary": true,
+								"finish_on_primary": true,
+								"children": [
+									{
+										"type": "subplan",
+										"success_policy": "BT_SUBPLAN_SUCCEED_ON_SUCCESS",
+										"failure_policy": "BT_SUBPLAN_FAIL_ON_FAILURE",
+										"children": [
+											{
+												"type": "leaf",
+												"behavior": "/datum/bt_node/ai_behavior/basic_melee_attack",
+												"vars": {
+													"target_key": "BB_CURRENT_TARGET",
+													"targeting_strategy": "BB_TARGETING_STRATEGY",
+													"hiding_location_key": "BB_CURRENT_TARGET_HIDING_LOCATION"
+												}
 											}
+										]
+									},
+									{
+										"type": "leaf",
+										"behavior": "/datum/bt_node/ai_behavior/move_to_target",
+										"vars": {
+											"target_key": "BB_CURRENT_TARGET",
+											"required_dist": 1,
+											"finish_on_arrival": false
 										}
-									]
-								},
-								{
-									"type": "leaf",
-									"behavior": "/datum/bt_node/ai_behavior/move_to_target",
-									"vars": {
-										"target_key": "BB_CURRENT_TARGET"
 									}
-								}
-							]
+								]
+							}
 						},
 						{
 							"type": "subtree",
@@ -65,12 +78,13 @@
 						},
 						{
 							"type": "subtree",
-							"subtype": "/datum/bt_node/subtree/random_speech_loop"
+							"subtype": "/datum/bt_node/subtree/move_to_and_eat"
 						},
 						{
 							"type": "decorator",
 							"decorator": "/datum/bt_node/decorator/bb_key_set",
 							"vars": {
+								"observer_abort": "BT_ABORT_SELF",
 								"key": "BB_OWNER_TARGET"
 							},
 							"child": {
@@ -107,6 +121,7 @@
 					"type": "decorator",
 					"decorator": "/datum/bt_node/decorator/bb_key_true",
 					"vars": {
+						"observer_abort": "BT_ABORT_SELF",
 						"key": "BB_RAPTOR_PLAYFUL"
 					},
 					"child": {
@@ -122,26 +137,23 @@
 					"type": "decorator",
 					"decorator": "/datum/bt_node/decorator/bb_key_true",
 					"vars": {
+						"observer_abort": "BT_ABORT_SELF",
 						"key": "BB_BASIC_MOB_HEALER"
 					},
 					"child": {
-						"type": "parallel",
-						"failure_policy": "BT_PARALLEL_FAILURE_CHILD_ONE",
-						"success_policy": "BT_PARALLEL_SUCCESS_CHILD_ONE",
-						"repeat_secondary": false,
-						"finish_on_primary": false,
+						"type": "selector",
 						"children": [
 							{
 								"type": "leaf",
 								"behavior": "/datum/bt_node/ai_behavior/acquire_target",
 								"vars": {
 									"target_key": "BB_INJURED_RAPTOR",
-									"targeting_strategy": "BB_INJURED_RAPTOR"
+									"targeting_strategy": "/datum/targeting_strategy/injured_mob/not_self/injured_raptor"
 								}
 							},
 							{
 								"type": "leaf",
-								"behavior": "/datum/bt_node/ai_behavior/retrieve_injured_target",
+								"behavior": "/datum/bt_node/ai_behavior/retrieve_injured_rider",
 								"vars": {
 									"target_key": "BB_INJURED_RAPTOR"
 								}
@@ -153,6 +165,7 @@
 					"type": "decorator",
 					"decorator": "/datum/bt_node/decorator/bb_key_true",
 					"vars": {
+						"observer_abort": "BT_ABORT_SELF",
 						"key": "BB_RAPTOR_MOTHERLY"
 					},
 					"child": {
@@ -160,7 +173,7 @@
 						"behavior": "/datum/bt_node/ai_behavior/acquire_target",
 						"vars": {
 							"target_key": "BB_RAPTOR_BABY",
-							"targeting_strategy": "/datum/target_strategy/baby_raptor"
+							"targeting_strategy": "/datum/targeting_strategy/baby_raptor"
 						}
 					}
 				},
@@ -172,6 +185,7 @@
 							"behavior": "/datum/bt_node/ai_behavior/acquire_target/update_combat_targets",
 							"vars": {
 								"target_key": "BB_CURRENT_TARGET",
+								"targeting_strategy": "BB_TARGETING_STRATEGY",
 								"hiding_location_key": "BB_CURRENT_TARGET_HIDING_LOCATION"
 							}
 						},
@@ -180,10 +194,15 @@
 							"behavior": "/datum/bt_node/ai_behavior/acquire_target/target_from_retaliate_list",
 							"vars": {
 								"target_key": "BB_CURRENT_TARGET",
+								"targeting_strategy": "BB_TARGETING_STRATEGY",
 								"hiding_location_key": "BB_CURRENT_TARGET_HIDING_LOCATION"
 							}
 						}
 					]
+				},
+				{
+					"type": "subtree",
+					"subtype": "/datum/bt_node/subtree/random_speech_loop"
 				}
 			]
 		}

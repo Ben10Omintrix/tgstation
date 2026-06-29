@@ -1,8 +1,9 @@
 {
-	"dm_type": "/datum/ai_controller/basic_controller/baby_raptor",
+	"dm_type": "/datum/bt_node/subtree/raptor_heal_injured",
 	"type": "decorator",
 	"decorator": "/datum/bt_node/decorator/bb_key_set",
 	"vars": {
+		"observer_abort": "BT_ABORT_SELF",
 		"key": "BB_INJURED_RAPTOR"
 	},
 	"child": {
