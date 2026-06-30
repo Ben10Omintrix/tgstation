@@ -1,5 +1,5 @@
 {
-	"dm_type": "/datum/bt_node/subtree/raptor_food_trough",
+	"dm_type": "/datum/ai_controller/basic_controller/baby_raptor",
 	"type": "decorator",
 	"decorator": "/datum/bt_node/decorator/bb_key_set",
 	"vars": {
@@ -13,8 +13,7 @@
 				"type": "leaf",
 				"behavior": "/datum/bt_node/ai_behavior/move_to_target",
 				"vars": {
-					"target_key": "BB_RAPTOR_TROUGH_TARGET",
-					"movement_type": "BB_RAPTOR_TROUGH_TARGET"
+					"target_key": "BB_RAPTOR_TROUGH_TARGET"
 				}
 			},
 			{

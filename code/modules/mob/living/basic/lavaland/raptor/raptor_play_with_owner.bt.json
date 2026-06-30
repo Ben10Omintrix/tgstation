@@ -3,6 +3,7 @@
 	"type": "decorator",
 	"decorator": "/datum/bt_node/decorator/bb_key_set",
 	"vars": {
+		"observer_abort": "BT_ABORT_BOTH",
 		"key": "BB_OWNER_TARGET"
 	},
 	"child": {

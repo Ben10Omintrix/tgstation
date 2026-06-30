@@ -14,3 +14,5 @@
 	behavior_tree_json = "code/modules/mob/living/basic/lavaland/raptor/care_for_young.bt.json"
 
 
+/datum/bt_node/subtree/play_with_owner
+	behavior_tree_json = "code/modules/mob/living/basic/lavaland/raptor/raptor_play_with_owner.bt.json"
